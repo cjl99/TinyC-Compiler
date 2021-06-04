@@ -22,8 +22,15 @@
 
 %%
 program
-	: external_declaration
-	| translation_unit external_declaration
+	: external_declaration{
+	    $$ = new AstProgram();
+	    $$->addExternalExpr($1);
+	    astRoot = $$
+	}
+	| program external_declaration{
+	    $$ = $1;
+	    $$->addExternalExpr($1);
+	}
 	;
 
 external_declaration

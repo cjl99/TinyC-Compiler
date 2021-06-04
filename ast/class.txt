@@ -1,0 +1,190 @@
+Ast
+AstBase
+
+AstExpr
+    AstPrimaryExpr
+
+
+declaration
+    declaration_specifiers
+    init_declarator_list
+
+AstSpecifier
+    storage_class_specifier
+    type_specifier
+    type_qualifier
+
+specifier_qualifier_list
+type_qualifier_list
+
+AstInitDeclarator
+
+AstDeclarator
+
+AstDirectDecl
+AstPoint
+
+
+AstInitializer
+
+
+
+
+parameter_type_list
+parameter_list
+parameter_declaration
+identifier_list
+type_name
+abstract_declarator
+direct_abstract_declarator
+
+initializer_list
+//--------------TYPE-----------------------------
+"auto"
+✅"char"					Type::getInt8Ty(llvmContext);
+✅"const"					llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), value, isSigned=true)
+                        llvm::ConstantFP::get((Type *Ty, StringRef Str)
+✅"double"				Type::getDoubleTy(llvmContext);
+"enum"					{ RETURN_TOKEN(ENUM); }
+✅"float"				Type::getFloatTy(llvmContext);
+✅"int"					Type::getInt32Ty(llvmContext);
+✅"long"					Type::getInt64Ty(llvmContext);
+✅"short"				Type::getInt16Ty(llvmContext);
+"signed"				{ RETURN_TOKEN(SIGNED); }
+✅"static"				GlobalVariable* gvar_ptr_abc = new GlobalVariable(/*Module=*/*mod, 
+                                /*Type=*/PointerTy_0,
+                                /*isConstant=*/false,
+                                /*Linkage=*/GlobalValue::CommonLinkage,
+                                /*Initializer=*/0, // has initializer, specified below
+                                /*Name=*/"abc");
+                        gvar_ptr_abc->setAlignment(4);
+✅"struct"				StructType::create(llvmContext,ArrayRef< Type * >Elements, StringRef name);
+"typedef"				{ RETURN_TOKEN(TYPEDEF); }
+✅"union"				StructType::create(llvmContext,ArrayRef< Type * >Elements, StringRef name); add some cast
+"unsigned"				{ RETURN_TOKEN(UNSIGNED); }
+✅"void"					Type::getVoidTy(llvmContext);
+
+pointer, union, signed, static, enums
+
+class AstProgram;
+    1. iterate all external expression
+    2. Value* = (*AstExternalExpr)->codeGen(context);
+    3. return last;
+-------------------------------------------
+class AstExternalExpr;
+    1. Judge is AstFunDef or AstDeclaration
+    2. return AstDeclaration->codeGen(context) or AstFunDef->codeGen(context)
+
+-------------------------------------------
+class AstFunDef;
+    1. get return type from declaration_specifiers 
+    2. get function name & parameter_list from declarator (need to judge the type)
+    3. Create new BasicBlock and declare new function parameters
+    4. AstcompoundStatement->codeGen(context)
+    5. create returnValue
+    6. return function
+-------------------------------------------
+class AstDeclaration;
+    1. get variable type from declaration_specifiers
+    2. get variable names from init_declarator_list-init_declarator-declarator-direct_declarator-INDENTIFIER
+                                                                    -initializer_list
+class AstTypeName;
+
+
+-------------------------------------------
+class AstCompoundStmt;
+    1. Create new BasicBlock
+    2. get statements from statement_list or get declarations from declaration_list
+    3. get specific statement and statement->codeGen(llvmContext)
+
+--------------------------------------------
+class AstLabelStmt;
+    1. 
+
+
+--------------------------------------------  
+class AstSelectStmt;
+    1. NIfStatement
+    2. SWITCH
+--------------------------------------------    
+class AstIterStmt;
+    1. NForStatement
+    2. while
+--------------------------------------------  
+class AstJmpStmt;
+    1. NReturnStatement
+--------------------------------------------  
+class AstExprList;(expression_statement)
+    1. get every expression
+    2. getAssignExpr()->codeGen(llvmContext);
+--------------------------------------------  
+class AstAssignExpr;
+    1. getCondiExpr()->codeGen();
+    2. or getUnaryExpr()->codeGen(); getAssignExpr()->codeGen()
+        compare two value types
+        and finish assignment context.builder.CreateStore(exp, dst);
+-------------------------------------------- 
+class AstCondiExpr;
+    1. if expression==nullptr, getAstCalcuExpr()->codeGen()
+    2. expression->codeGen(), conditional_expression->codeGen()
+    3. create if statement
+
+--------------------------------------------  
+class AstCalcuExpr;
+    1. if getCalcuExprList().size()==1, getCalcuExprList()[0]->codeGen(llvmContext)
+    2. if getCalcuExprList().size()>1, 
+            values[0..n] = getCalcuExprList()[0..n]->codeGen(llvmContext)
+        check all values type to be same or upgrade type
+       for(auto op in getOpList())
+            generate binary expression in LLVM
+-----------------------------------------------
+class AstCastExpr;
+    1. if type_name==nullptr, return unary_expression->codeGen(llvmContext);
+    2. Value* value= unary_expression->codeGen(llvmContext); and convert value type
+-----------------------------------------------
+class AstUnaryExpr;
+    1. if getOperator()=="", return postfix_expression->codeGen(llvmContext);
+    2. Value* = unary_expression->codeGen(llvmContext); or cast_expression; or type_name
+        switch(getOperator())
+            generate unary expression--CreateNeg
+-----------------------------------------------
+class AstPostfixExpr;
+    1. postfix_expression==primary_expression,
+        getPtr()->getLabel()!="", context.getSymbolValue(getPtr()->getLabel());
+        context.builder.CreateLoad(value, false, "");
+        if is CONSTANT??? or STRING_LITERAL
+        expression->codeGen();
+    2. postfix_expression->codeGen();??????
+-----------------------------------------------
+
+
+class AstInitDeclList;
+class AstInitDeclarator;
+class AstDeclarator;
+class AstStructDeclList;
+class AstStructDecl;
+class AstStructDeclaratorList;
+class AstStructDeclarator;
+class AstDirectDeclarator;
+class AstPointer;
+class AstParamDecl;
+class AstParamList;
+class AstParamTypeList;
+class AstIdList;
+class AstAbsDeclarator;
+class AstDirectAbsDeclarator;
+class AstInit;
+class AstInitList;
+class AstPointer;
+
+class AstArgExprList;
+
+class AstComplexSpec;
+class AstEnumerator;
+class AstEnumList;
+class AstEnumSpec;
+class AstStructOrUnionSpec;
+class AstTypeSpec;
+
+class AstSpec;
+class AstSpecList;
