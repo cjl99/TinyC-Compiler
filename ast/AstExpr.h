@@ -7,7 +7,6 @@
 
 #include "AstBase.h"
 #include "AstType.h"
-#include "AstDecl.h"
 #include <string>
 
 class AstExpr;

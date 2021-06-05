@@ -6,6 +6,7 @@
 #define OUR_C_COMPILER_ASTDECL_H
 
 #include "AstBase.h"
+#include "AstExpr.h"
 #include "AstType.h"
 
 class AstDecl;
