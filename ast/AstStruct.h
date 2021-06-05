@@ -27,13 +27,20 @@ public:
 class AstStructSpec{
 private:
     string name;
-    vector<pair<string, string> > members;
+    vector<string> memRawType;
+    vector<int> ptrLevel;
+    vector<string> memName;
 public:
     AstStructSpec(string name, AstStructDeclarationList* structDeclaration);
 
     string getName() const;
 
-    vector<pair<string, string> > getMembers() const;
+    vector<string> getMemRawType() const;
+
+    vector<int> getPtrLevel() const;
+
+    vector<string> getMemName() const;
+
 
 };
 #endif

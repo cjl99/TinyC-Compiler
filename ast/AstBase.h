@@ -17,7 +17,7 @@ public:
     AstBase() = default;
     AstBase(std::string nodeType);
     std::string getNodeType() const;
-    virtual Value *codegen() = 0;
+//    virtual Value *codegen() = 0;
 
 private:
     std::string nodeType;

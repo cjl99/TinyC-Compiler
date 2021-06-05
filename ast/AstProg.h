@@ -35,6 +35,7 @@ public:
     AstFunDef(AstSpec* spec, AstPointer* pointer, string funcName, AstParamList* paramList, AstCompoundStmt* compound_statement);
     string getReturnType();
     string getFuncName();
+    int getReturnPtrLevel();
     std::vector<std::pair<AstSpec*, AstDeclarator*> > getParamList();
     AstCompoundStmt* getCompound_statement() const;
 private:

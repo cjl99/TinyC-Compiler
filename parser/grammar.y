@@ -2,7 +2,7 @@
 #define MAX_LITERAL_LEN 256
 
 #include "ast/Ast.h"
-#include "visualizeAST/astGenerator.h"
+//#include "visualizeAST/astGenerator.h"
 using namespace std;
 #define DEBUG_PARSER
 
@@ -39,6 +39,7 @@ char *key;
 	AstDirectDeclarator* ast_direct_declarator;
 	AstPointer* ast_pointer;
 	AstParamList *ast_param_list;
+	AstDeclarationList* ast_declaration_list;
 
 	AstPrimaryExpr* ast_primary_expr;
 	AstPostfixExpr* ast_post_expr;
@@ -71,6 +72,7 @@ char *key;
 %token<str> CHAR SHORT INT LONG FLOAT DOUBLE VOID
 %token<str> STRUCT
 %token<str> IF ELSE WHILE DO FOR CONTINUE BREAK RETURN
+%token<str> '&' '*' '+' '-' '!' '~'
 
 %left OR_OP
 %left AND_OP
@@ -111,6 +113,7 @@ char *key;
 %type<ast_id_list> identifier_list
 %type<ast_type_name> type_name
 %type<ast_stmt_list> statement_list
+%type<ast_declaration_list> declaration_list
 %type<ast_compound_stmt> compound_statement
 %type<ast_stmt> statement
 %type<ast_expr_stmt> expression_statement
@@ -125,13 +128,14 @@ char *key;
 %%
 program
 	: external_declaration{
+		printf("program\n");
 	    $$ = new AstProgram();
 	    $$->addExternalExpr($1);
 	    astRoot = $$;
 	}
 	| program external_declaration {
 	    $$ = $1;
-	    $$->addExternalExpr($1);
+	    $$->addExternalExpr($2);
 	}
 	;
 
@@ -146,7 +150,7 @@ external_declaration
 
 function_definition
 	: type_specifier IDENTIFIER '(' parameter_list ')' compound_statement{
-		$$ = new AstFunDef($1,nullptr, $2, $4, $6);
+		$$ = new AstFunDef($1, nullptr, $2, $4, $6);
 	}
 	| type_specifier pointer IDENTIFIER '(' parameter_list ')' compound_statement{
 		$$ = new AstFunDef($1, $2, $3, $5, $7);
@@ -173,10 +177,10 @@ type_specifier
 init_declarator_list
 	: init_declarator {
 		$$ = new AstInitDeclList();
-		$$->addInitDecl($1);
+		$$->addInitDeclarator($1);
 	}
 	| init_declarator_list ',' init_declarator {
-		$1->addInitDecl($3);
+		$1->addInitDeclarator($3);
 		$$ = $1;
 	}
 	;
@@ -218,7 +222,7 @@ declarator
 		$$ = new AstDeclarator($1, $2);
 	}
 	| direct_declarator {
-		$$ = new AstDeclarator(nullptr, $2);
+		$$ = new AstDeclarator(nullptr, $1);
 	}
 	;
 
@@ -253,13 +257,14 @@ pointer
 parameter_list 
     : {
 		$$ = new AstParamList(false);
+
 	}
     | type_specifier declarator {
 		$$ = new AstParamList(true);
 		$$->addParam($1, $2);
 	}
 	| parameter_list ',' type_specifier declarator {
-		$1->addParam($2, $3);
+		$1->addParam($3, $4);
 		$$  = $1;
 	}
 	;
@@ -282,7 +287,7 @@ primary_expression
 
 postfix_expression
 	: primary_expression {
-	    $$ = new AstPostfixExpr("", $1);
+	    $$ = new AstPostfixExpr(nullptr, "", $1);
 	}
 	| postfix_expression '[' expression ']' {
 	    $$ = new AstPostfixExpr($1, "[]", $3);
@@ -294,7 +299,7 @@ postfix_expression
 	    $$ = new AstPostfixExpr($1, "()", $3);
 	}
 	| postfix_expression '.' IDENTIFIER {
-	    $$ = new AstPostfixExpr($1, $2, $3);
+	    $$ = new AstPostfixExpr($1, ".", $3);
 	}
 	| postfix_expression PTR_OP IDENTIFIER{
 	    $$ = new AstPostfixExpr($1, $2, $3);
@@ -320,7 +325,7 @@ argument_expression_list
 
 unary_expression
 	: postfix_expression {
-	    $$ = new AstUnaryExpr("", $2);
+	    $$ = new AstUnaryExpr("", $1);
 	}
 	| INC_OP unary_expression {
 	    $$ = new AstUnaryExpr($1, $2);
@@ -374,13 +379,13 @@ binary_expression
         $$ = new AstBinaryExpr($1, $2, $3);
     }
     | binary_expression '|'     binary_expression {
-        $$ = new AstBinaryExpr($1, $2, $3);
+        $$ = new AstBinaryExpr($1, "|", $3);
     }
     | binary_expression '^'     binary_expression {
-        $$ = new AstBinaryExpr($1, $2, $3);
+        $$ = new AstBinaryExpr($1, "^", $3);
     }
     | binary_expression '&'     binary_expression {
-        $$ = new AstBinaryExpr($1, $2, $3);
+        $$ = new AstBinaryExpr($1, "&", $3);
     }
     | binary_expression EQ_OP   binary_expression {
         $$ = new AstBinaryExpr($1, $2, $3);
@@ -389,10 +394,10 @@ binary_expression
         $$ = new AstBinaryExpr($1, $2, $3);
     }
     | binary_expression '<'     binary_expression {
-        $$ = new AstBinaryExpr($1, $2, $3);
+        $$ = new AstBinaryExpr($1, "<", $3);
     }
     | binary_expression '>'     binary_expression {
-        $$ = new AstBinaryExpr($1, $2, $3);
+        $$ = new AstBinaryExpr($1, ">", $3);
     }
     | binary_expression LE_OP   binary_expression {
         $$ = new AstBinaryExpr($1, $2, $3);
@@ -407,19 +412,19 @@ binary_expression
         $$ = new AstBinaryExpr($1, $2, $3);
     }
     | binary_expression '+'     binary_expression {
-        $$ = new AstBinaryExpr($1, $2, $3);
+        $$ = new AstBinaryExpr($1, "+", $3);
     }
     | binary_expression '-'     binary_expression {
-        $$ = new AstBinaryExpr($1, $2, $3);
+        $$ = new AstBinaryExpr($1, "-", $3);
     }
     | binary_expression '*'     binary_expression {
-        $$ = new AstBinaryExpr($1, $2, $3);
+        $$ = new AstBinaryExpr($1, "*", $3);
     }
     | binary_expression '/'     binary_expression {
-        $$ = new AstBinaryExpr($1, $2, $3);
+        $$ = new AstBinaryExpr($1, "/", $3);
     }
     | binary_expression '%'     binary_expression {
-        $$ = new AstBinaryExpr($1, $2, $3);
+        $$ = new AstBinaryExpr($1, "%", $3);
     }
 
 
@@ -443,7 +448,7 @@ expression
 
 assignment_operator
 	: '=' {
-        $$ = new AstAssignOp($1);
+        $$ = new AstAssignOp("=");
 	}
 	| MUL_ASSIGN {
 	    $$ = new AstAssignOp($1);
@@ -531,6 +536,18 @@ statement_list
 	}
 	;
 
+declaration_list
+	: declaration{
+		$$ = new AstDeclarationList();
+		$$->addDeclaration($1);
+	}
+	| declaration_list declaration{
+		$$ = $1;
+		$$->addDeclaration($2);
+	}
+	;
+
+
 compound_statement
 	: '{' '}'{
 		$$ = new AstCompoundStmt(nullptr, nullptr);
@@ -570,13 +587,13 @@ selection_statement
 
 iteration_statement
 	: WHILE '(' expression ')' statement{
-		$$ = new AstIterStmt(nullptr, $3, nulltpr, $5);
+		$$ = new AstIterStmt(nullptr, $3, nullptr, $5);
 	}
 	| FOR '(' expression_statement expression_statement ')' statement{
-		$$ = new AstIterStmt($3, $4, nulltpr, $6);
+		$$ = new AstIterStmt($3->getExpr(), $4->getExpr(), nullptr, $6);
 	}
 	| FOR '(' expression_statement expression_statement expression ')' statement{
-		$$ = new AstIterStmt($3, $4, $5, $7);
+		$$ = new AstIterStmt($3->getExpr(), $4->getExpr(), $5, $7);
 	}
 	;
 
@@ -589,13 +606,20 @@ jump_statement
 
 %%
 #include <stdio.h>
+#define DEBUG_PARSER
 
 extern char yytext[];
 extern int column;
 
-yyerror(s)
-char *s;
-{
-	fflush(stdout);
-	printf("\n%*s\n%*s\n", column, "^", column, s);
+#ifdef DEBUG_PARSER
+int main(int argc,char* argv[]){
+	yyin=fopen(argv[1],"r");
+	printf("parse\n");
+	yyparse();
+	fclose(yyin);
+//	AstGraph *graph = new AstGraph("AstGraph.dot");
+//	graph->generateGraph();
+//	graph->saveGraph();
+	return 0;
 }
+#endif

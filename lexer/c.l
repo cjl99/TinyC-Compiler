@@ -7,7 +7,7 @@
 extern void yyerror(const char *);  /* prints grammar violation message */
 extern int sym_type(const char *);  /* returns type from symbol table */
 
-#define DEBUG_LEXER
+// #define DEBUG_LEXER
 #define sym_type(identifier) IDENTIFIER /* with no symbol table, fake it */
 #define YYSTYPE char*
 
@@ -66,7 +66,6 @@ WS  [ \t\v\n\f]
 
 {SP}?\"(\\.|[^\\"])*\"     { yylval.str = strdup(yytext); RETURN_TOKEN(STRING_LITERAL); }
 
-"..."					{ yylval.str = strdup(yytext); RETURN_TOKEN(ELLIPSIS); }
 ">>="					{ yylval.str = strdup(yytext); RETURN_TOKEN(RIGHT_ASSIGN); }
 "<<="					{ yylval.str = strdup(yytext); RETURN_TOKEN(LEFT_ASSIGN); }
 "+="					{ yylval.str = strdup(yytext); RETURN_TOKEN(ADD_ASSIGN); }

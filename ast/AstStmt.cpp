@@ -39,18 +39,18 @@ AstStmtList* AstCompoundStmt::getAstStmtList() const{
 }
 
 // ===============================================
-AstExprStmt::AstExprStmt(AstExpr *expr)
+AstExprStmt::AstExprStmt(AstExpression *expr)
             :AstNonLabelStmt("expression_statement"), expr(expr){}
 
-AstExpr* AstExprStmt::getExpr(){
+AstExpression* AstExprStmt::getExpr(){
     return expr;
 }
 
 // ===============================================
-AstSelectStmt(AstExpr *expr, AstStmt *thenClause, AstStmt *elseClause)
+AstSelectStmt::AstSelectStmt(AstExpression *expr, AstStmt *thenClause, AstStmt *elseClause)
             :AstNonLabelStmt("selection_statement"),expr(expr), thenClause(thenClause), elseClause(elseClause){}
 
-AstExpr *AstSelectStmt::getExpr() const{
+AstExpression *AstSelectStmt::getExpr() const{
     return expr;
 }
 
@@ -63,18 +63,18 @@ AstStmt *AstSelectStmt::getElseClause() const{
 }
 
 // ===============================================
-AstIterStmt::AstIterStmt(AstExpr *initialExpr, AstExpr *judgeExpr, AstExpr *updateExpr, AstStmt *block)
+AstIterStmt::AstIterStmt(AstExpression *initialExpr, AstExpression *judgeExpr, AstExpression *updateExpr, AstStmt *block)
             :AstNonLabelStmt("iteration_statement"),  block(block), initialExpr(initialExpr), judgeExpr(judgeExpr), updateExpr(updateExpr){}
 
-AstExpr *AstIterStmt::getInitialExpr() const{
+AstExpression *AstIterStmt::getInitialExpr() const{
     return initialExpr;
 }
 
-AstExpr *AstIterStmt::getJudgeExpr() const{
+AstExpression *AstIterStmt::getJudgeExpr() const{
     return judgeExpr;
 }
 
-AstExpr *AstIterStmt::getUpdateExpr() const{
+AstExpression *AstIterStmt::getUpdateExpr() const{
     return initialExpr;
 }
 
@@ -83,13 +83,13 @@ AstStmt *AstIterStmt::getBlock() const{
 }
 
 // ===============================================
-AstJmpStmt::AstJmpStmt(string type, AstExpr *expr)
+AstJmpStmt::AstJmpStmt(string type, AstExpression *expr)
         :AstNonLabelStmt("jump_statement"), type(type), expr(expr){}
 
 string AstJmpStmt::getType() const{
     return type;
 }
 
-AstExpr *AstJmpStmt::getExpr() const{
+AstExpression *AstJmpStmt::getExpr() const{
     return expr;
 }

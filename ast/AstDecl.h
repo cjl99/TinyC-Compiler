@@ -11,6 +11,7 @@
 
 class AstDecl;
 class AstDeclaration;
+class AstDeclarationList;
 class AstInitDeclList;
 class AstInitDeclarator;
 class AstInitializer;
@@ -33,6 +34,15 @@ public:
 private:
     AstSpec* astTypeSpec;
     AstInitDeclList* astInitDeclList;
+};
+
+class AstDeclarationList: public AstDecl{
+public:
+    AstDeclarationList();
+    void addDeclaration(AstDeclaration* declaration);
+    std::vector<AstDeclaration*>& getDeclarationList();
+private:
+    std::vector<AstDeclaration*> declarationList;
 };
 
 class AstInitDeclList: public AstDecl {
@@ -65,7 +75,7 @@ public:
 private:
     AstExpression *astExpression;
     AstInitList *astInitList;
-}
+};
 
 class AstInitList: public AstDecl {
 public:
@@ -75,7 +85,7 @@ public:
 
 private:
     std::vector<AstInitializer *> astInitializerList;
-}
+};
 
 class AstDeclarator: public AstDecl {
 public:
@@ -87,7 +97,7 @@ public:
 private:
     AstPointer* astPointer;
     AstDirectDeclarator* astDirectDeclarator;
-}
+};
 
 class AstDirectDeclarator: public AstDecl {
 public:
@@ -124,6 +134,27 @@ private:
     std::vector<std::pair<AstSpec*, AstDeclarator*>> astParamList;
 };
 
+class AstTypeName: public AstBase{
+private:
+    std::string type;
+    int ptrLevel;
+public:
+    AstTypeName(AstSpec *spec, AstPointer *pointer);
 
+    std::string getType();
+
+    int getPtrLevel();
+};
+
+class AstIdList: public AstBase{
+private:
+    std::vector<std::string> identifiers;
+public:
+    AstIdList();
+
+    void addId(std::string id);
+
+    std::vector<std::string> getIdentifiers();
+};
 
 #endif //OUR_C_COMPILER_ASTDECL_H

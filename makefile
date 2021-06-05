@@ -4,16 +4,16 @@ OBJS = $(patsubst %.cpp,%.o,$(SOURCE))
 SOURCE2 = $(wildcard ./visualizeAST/*.cpp)
 OBJS2 = $(patsubst %.cpp,%.o,$(SOURCE2))
 
-all: res graph
+all: res
 
-res: $(OBJS) $(OBJS2) y.tab.o lex.yy.o
-	g++ y.tab.o lex.yy.o $(OBJS) $(OBJS2) -o res
+res: $(OBJS) y.tab.o lex.yy.o
+	g++ y.tab.o lex.yy.o $(OBJS) -o res
 
 y.tab.o: y.tab.cpp
 	g++ -c y.tab.cpp -std=c++11
 
-y.tab.cpp: ./parser/Syntax.y
-	yacc -d -o y.tab.cpp ./parser/Syntax.y
+y.tab.cpp: ./parser/grammar.y
+	yacc -d -o y.tab.cpp ./parser/grammar.y
 
 y.tab.hpp: y.tab.cpp
 	echo "y.tab.h was created at the same time as y.tab.c"
@@ -45,8 +45,7 @@ clean:
 	make clean -C lexer
 	make clean -C parser
 	make clean -C ast
-	make clean -C visualizeAST
-	rm -rf *.o *.cpp *.hpp
-	rm -rf *.dot *.jpg
+	rm -rf *.o
+	rm -r y.tab.cpp y.tab.hpp lex.yy.cpp
 	rm -r res
 	

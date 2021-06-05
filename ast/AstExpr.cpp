@@ -7,7 +7,7 @@
 //class AstExpr;
 AstExpr::AstExpr(std::string nodeType)
         :AstBase(nodeType){}
-}
+
 
 //class AstExpression;
 
@@ -23,7 +23,7 @@ AstExpression::AstExpression(AstUnaryExpr *astUnaryExpr, AstAssignOp *astAssignO
     this->isCondi = false;
     this->child_expr = expression;
     this->astAssignOp = astAssignOp;
-    this->astUnaryExpr = astUnaryExpr
+    this->astUnaryExpr = astUnaryExpr;
 }
 AstUnaryExpr * AstExpression::getUnaryExpr() {
     return this->astUnaryExpr;

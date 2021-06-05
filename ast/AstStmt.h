@@ -60,24 +60,24 @@ public:
 
 class AstExprStmt: public AstNonLabelStmt{
 private:
-    AstExpr *expr;
+    AstExpression *expr;
 public:
-    AstExprStmt(AstExpr *expr);
+    AstExprStmt(AstExpression *expr);
 
-    AstExpr* getExpr();
+    AstExpression* getExpr();
 
 };
 
 class AstSelectStmt: public AstNonLabelStmt {
 private:
-    AstExpr *expr;
+    AstExpression *expr;
     AstStmt *thenClause;
     AstStmt *elseClause;
 
 public:
-    AstSelectStmt(AstExpr *expr, AstStmt *thenClause, AstStmt *elseClause= nullptr);
+    AstSelectStmt(AstExpression *expr, AstStmt *thenClause, AstStmt *elseClause= nullptr);
 
-    AstExpr *getExpr() const;
+    AstExpression *getExpr() const;
 
     AstStmt *getThenClause() const;
 
@@ -87,19 +87,19 @@ public:
 
 class AstIterStmt: public AstNonLabelStmt{
 private:
-    AstExpr *initialExpr;
-    AstExpr *judgeExpr;
-    AstExpr *updateExpr;
+    AstExpression *initialExpr;
+    AstExpression *judgeExpr;
+    AstExpression *updateExpr;
     AstStmt *block;
 
 public:
-    AstIterStmt(AstExpr *initialExpr, AstExpr *judgeExpr, AstExpr *updateExpr, AstStmt *block);
+    AstIterStmt(AstExpression *initialExpr, AstExpression *judgeExpr, AstExpression *updateExpr, AstStmt *block);
 
-    AstExpr *getInitialExpr() const;
+    AstExpression *getInitialExpr() const;
 
-    AstExpr *getJudgeExpr() const;
+    AstExpression *getJudgeExpr() const;
 
-    AstExpr *getUpdateExpr() const;
+    AstExpression *getUpdateExpr() const;
 
     AstStmt *getBlock() const;
 
@@ -108,14 +108,14 @@ public:
 class AstJmpStmt: public AstNonLabelStmt{
 private:
     string type;
-    AstExpr *expr;
+    AstExpression *expr;
 
 public:
-    AstJmpStmt(string type, AstExpr *expr);
+    AstJmpStmt(string type, AstExpression *expr);
 
     string getType() const;
 
-    AstExpr *getExpr() const;
+    AstExpression *getExpr() const;
 };
 
 #endif

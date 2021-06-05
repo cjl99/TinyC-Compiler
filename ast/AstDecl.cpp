@@ -18,6 +18,17 @@ AstInitDeclList* AstDeclaration::getInitDeclList() {
     return this->astInitDeclList;
 }
 
+//===================AstDeclartionList======================
+AstDeclarationList::AstDeclarationList(): AstDecl("declaration_list"){}
+
+void AstDeclarationList::addDeclaration(AstDeclaration* declaration){
+    declarationList.push_back(declaration);
+}
+
+std::vector<AstDeclaration*>& AstDeclarationList::getDeclarationList(){
+    return declarationList;
+}
+
 /* AstInitDeclList
  * */
 AstInitDeclList::AstInitDeclList() :AstDecl("init_declarator_list") {}
@@ -135,4 +146,31 @@ void AstParamList::addParam(AstSpec *astSpec, AstDeclarator *astDeclarator) {
 }
 std::vector<std::pair<AstSpec *, AstDeclarator *>> AstParamList::getParamList() {
     return this->astParamList;
+}
+
+//==============================================
+AstTypeName::AstTypeName(AstSpec *spec, AstPointer *pointer){
+    type = spec->getLabel();
+    if(pointer!= nullptr)
+        ptrLevel = pointer->getStarNum();
+    else ptrLevel = 0;
+}
+
+std::string AstTypeName::getType(){
+    return type;
+}
+
+int AstTypeName::getPtrLevel(){
+    return ptrLevel;
+}
+
+//==============================================
+AstIdList::AstIdList(){}
+
+void AstIdList::addId(std::string id){
+    identifiers.push_back(id);
+}
+
+std::vector<std::string> AstIdList::getIdentifiers(){
+    return identifiers;
 }
