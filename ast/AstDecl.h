@@ -6,7 +6,6 @@
 #define OUR_C_COMPILER_ASTDECL_H
 
 #include "AstBase.h"
-#include "AstExpr.h"
 #include "AstType.h"
 
 class AstDecl;
@@ -20,6 +19,8 @@ class AstDeclarator;
 class AstDirectDeclarator;
 class AstPointer;
 class AstParamList;
+class AstIdList;
+class AstTypeName;
 
 class AstDecl: public AstBase {
 public:
@@ -57,7 +58,7 @@ private:
 class AstInitDeclarator: public AstDecl {
 public:
     AstInitDeclarator(AstDeclarator *astDeclarator, AstInitializer* astInitializer);
-    AstDeclarator *getInitDeclarator();
+    AstDeclarator *getDeclarator();
     AstInitializer *getInitializer();
     bool hasEqual();
 private:
@@ -103,7 +104,7 @@ class AstDirectDeclarator: public AstDecl {
 public:
     AstDirectDeclarator(std::string identifier);
     void addToDirectDecl(int type, void *ptr);
-    std::vector<std::pair<int, void *> >& getDirectDeclarator();
+    std::vector<std::pair<int, void *> >& getDirectDeclaratorPair();
     std::string getIdentifier();
 
 private:

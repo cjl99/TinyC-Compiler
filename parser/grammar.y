@@ -122,16 +122,15 @@ char *key;
 %type<ast_jmp_stmt> jump_statement
 
 
-
 %start program
 
 %%
 program
 	: external_declaration{
-		printf("program\n");
 	    $$ = new AstProgram();
 	    $$->addExternalExpr($1);
 	    astRoot = $$;
+	    printf("Program is parsed successfully!\n");
 	}
 	| program external_declaration {
 	    $$ = $1;
@@ -239,7 +238,7 @@ direct_declarator
 		$$ = $1;
 	}
 	| direct_declarator '(' identifier_list ')' {
-		$1->addToDirectDecl(1, $3);
+		$1->addToDirectDecl(3, $3);
 		$$ = $1;
 	}
 	;
@@ -564,11 +563,11 @@ compound_statement
 	;
 
 statement
-	: compound_statement{ $$ = new AstStmt($1); }
-	| expression_statement{ $$ = new AstStmt($1); }
-	| selection_statement{ $$ = new AstStmt($1); }
-	| iteration_statement{ $$ = new AstStmt($1); }
-	| jump_statement{ $$ = new AstStmt($1); }
+	: compound_statement{ $$ = new AstStmt(1, $1); }
+	| expression_statement{ $$ = new AstStmt(2, $1); }
+	| selection_statement{ $$ = new AstStmt(3, $1); }
+	| iteration_statement{ $$ = new AstStmt(4, $1); }
+	| jump_statement{ $$ = new AstStmt(5, $1); }
 	;
 
 expression_statement
@@ -587,13 +586,13 @@ selection_statement
 
 iteration_statement
 	: WHILE '(' expression ')' statement{
-		$$ = new AstIterStmt(nullptr, $3, nullptr, $5);
+		$$ = new AstIterStmt(1, nullptr, $3, nullptr, $5);
 	}
 	| FOR '(' expression_statement expression_statement ')' statement{
-		$$ = new AstIterStmt($3->getExpr(), $4->getExpr(), nullptr, $6);
+		$$ = new AstIterStmt(2, $3->getExpr(), $4->getExpr(), nullptr, $6);
 	}
 	| FOR '(' expression_statement expression_statement expression ')' statement{
-		$$ = new AstIterStmt($3->getExpr(), $4->getExpr(), $5, $7);
+		$$ = new AstIterStmt(2, $3->getExpr(), $4->getExpr(), $5, $7);
 	}
 	;
 

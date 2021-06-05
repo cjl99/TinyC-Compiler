@@ -40,9 +40,10 @@ public:
 class AstStmt: public AstBase{
 private:
     AstBase *stmt;
-
+    int type;
 public:
-    AstStmt(AstBase* stmt);
+    AstStmt(int type, AstBase* stmt);
+    int getType();
     AstBase *getStmt() const;
 };
 
@@ -91,18 +92,15 @@ private:
     AstExpression *judgeExpr;
     AstExpression *updateExpr;
     AstStmt *block;
+    int type;
 
 public:
-    AstIterStmt(AstExpression *initialExpr, AstExpression *judgeExpr, AstExpression *updateExpr, AstStmt *block);
-
+    AstIterStmt(int type, AstExpression *initialExpr, AstExpression *judgeExpr, AstExpression *updateExpr, AstStmt *block);
     AstExpression *getInitialExpr() const;
-
     AstExpression *getJudgeExpr() const;
-
     AstExpression *getUpdateExpr() const;
-
     AstStmt *getBlock() const;
-
+    int getType();
 };
 
 class AstJmpStmt: public AstNonLabelStmt{
@@ -112,9 +110,7 @@ private:
 
 public:
     AstJmpStmt(string type, AstExpression *expr);
-
     string getType() const;
-
     AstExpression *getExpr() const;
 };
 

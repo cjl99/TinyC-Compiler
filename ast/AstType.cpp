@@ -5,7 +5,7 @@
 #include "AstType.h"
 
 AstSpec::AstSpec(std::string label)
-        :AstBase("specifier"),label(label){}
+        :AstBase("type_specifier"),label(label){}
 
 std::string AstSpec::getLabel() const{
     return label;

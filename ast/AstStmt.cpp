@@ -5,11 +5,15 @@ AstNonLabelStmt::AstNonLabelStmt(std::string nodeType)
 
 // ===============================================
 
-AstStmt:: AstStmt(AstBase* stmt)
-        : AstBase("statement"), stmt(stmt){}
+AstStmt:: AstStmt(int type, AstBase* stmt)
+        : AstBase("statement"), type(type), stmt(stmt){}
 
 AstBase * AstStmt::getStmt() const{
     return stmt;
+}
+
+int AstStmt::getType() {
+    return type;
 }
 
 // ===============================================
@@ -63,7 +67,7 @@ AstStmt *AstSelectStmt::getElseClause() const{
 }
 
 // ===============================================
-AstIterStmt::AstIterStmt(AstExpression *initialExpr, AstExpression *judgeExpr, AstExpression *updateExpr, AstStmt *block)
+AstIterStmt::AstIterStmt(int type, AstExpression *initialExpr, AstExpression *judgeExpr, AstExpression *updateExpr, AstStmt *block)
             :AstNonLabelStmt("iteration_statement"),  block(block), initialExpr(initialExpr), judgeExpr(judgeExpr), updateExpr(updateExpr){}
 
 AstExpression *AstIterStmt::getInitialExpr() const{
@@ -80,6 +84,10 @@ AstExpression *AstIterStmt::getUpdateExpr() const{
 
 AstStmt *AstIterStmt::getBlock() const{
     return block;
+}
+
+int AstIterStmt::getType() {
+    return type;
 }
 
 // ===============================================

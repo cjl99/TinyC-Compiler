@@ -22,7 +22,7 @@ AstDeclaration* AstExternalExpr::getDeclaration() const{
 
 //====================================================
 AstFunDef::AstFunDef(AstSpec* spec, AstPointer* pointer, string funcName, AstParamList* paramList, AstCompoundStmt* compound_statement)
-        :AstBase("function_definition"), funcName(funcName), compound_statement(compound_statement){
+        :AstBase("function_definition"), funcName(funcName), astParamList(paramList), compound_statement(compound_statement){
 
     returnType = spec->getLabel();
     if(pointer!= nullptr)
@@ -51,3 +51,6 @@ AstCompoundStmt* AstFunDef::getCompound_statement() const{
     return compound_statement;
 }
 
+AstParamList *AstFunDef::getAstParamList(){
+    return this->astParamList;
+}
