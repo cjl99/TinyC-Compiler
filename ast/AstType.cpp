@@ -11,14 +11,29 @@ std::string AstSpec::getLabel() const{
     return label;
 }
 
-AstSpecList::AstSpecList()
-            :AstBase("specifier_list"){}
-
-void AstSpecList::addSpecifier(AstSpec *spec){
-    spec_list.push_back(spec);
+//==============================================
+AstTypeName::AstTypeName(AstSpec *spec, AstPointer *pointer){
+    type = spec->getLabel();
+    if(pointer!= nullptr)
+        ptrLevel = pointer->getStarNum();
+    else ptrLevel = 0;
 }
 
-const std::vector<AstSpec *> &AstSpecList::getSpecList() const{
-    return spec_list;
+string AstTypeName::getType(){
+    return type;
 }
 
+int AstTypeName::getPtrLevel(){
+    return ptrLevel;
+}
+
+//==============================================
+AstIdList::AstIdList(){}
+
+void AstIdList::addId(string id){
+    identifiers.push_back(id);
+}
+
+std::vector<string> AstIdList::getIdentifiers(){
+    return identifiers
+}

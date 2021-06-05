@@ -6,85 +6,34 @@
 #include "AstDecl.h"
 using namespace std;
 
-class AstComplexSpec;
-class AstEnumerator;
-class AstEnumList;
-class AstEnumSpec;
-class AstStructOrUnionSpec;
-class AstTypeSpec;
-
-
-class AstComplexSpec: public AstBase{
+class AstStructDeclarationList{
 private:
-    string type;
-    string id;
-    
+    vector<string> memRawType;
+    vector<int> ptrLevel;
+    vector<string> memName;
 public:
-    AstComplexSpec(string, string, string);
+    AstStructDeclarationList();
 
-    string getType() const;
+    void addMember(AstSpec* spec, AstDeclarator* declarator);
 
-    string getId() const;
+    vector<string> getMemRawType() const;
+
+    vector<int> getPtrLevel() const;
+
+    vector<string> getMemName() const;
+
 };
 
-class AstEnumSpec: public AstComplexSpec{
+class AstStructSpec{
 private:
-    AstEnumList *enumList;
+    string name;
+    vector<pair<string, string> > members;
 public:
-    AstEnumSpec(string, string id= "", AstEnumList *enumList = nullptr) ;
+    AstStructSpec(string name, AstStructDeclarationList* structDeclaration);
 
-    AstEnumList *getEnumList() const;
+    string getName() const;
+
+    vector<pair<string, string> > getMembers() const;
+
 };
-
-class AstStructOrUnionSpec: public AstComplexSpec{
-private:
-    AstStructDeclList *structList;
-
-public:
-    AstStructOrUnionSpec(string label, string id= "", AstStructDeclList *structList = nullptr) ;
-    AstStructDeclList *getStructList() const;
-};
-
-
-class AstEnumerator: public AstBase{
-private:
-    string label;
-    AstCondiExpr *constExpr;
-
-public:
-    AstEnumerator(string label, AstCondiExpr *constExpr = nullptr);
-
-    AstExpr *getConstExpr() const;
-
-    string getLabel() const;
-};
-
-class AstEnumList: public AstBase{
-private:
-    vector<AstEnumerator *> enumList;
-
-public:
-    AstEnumList();
-
-    void addEnumerator(AstEnumerator *);
-
-    const std::vector<AstEnumerator *> &getEnumList() const;
-};
-
-class AstTypeSpec: public AstSpec{
-private:
-    AstComplexSpec *complexSpec;
-    // std::string label;
-    // char *label1;
-
-public:
-    AstTypeSpec(std::string label1, AstComplexSpec *complexSpec=nullptr);
-    
-    AstComplexSpec *getComplexSpec() const;
-};
-
-
-
-
-
 #endif

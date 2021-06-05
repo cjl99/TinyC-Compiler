@@ -9,11 +9,6 @@
 
 using namespace std;
 
-/* =======unfinished=======
-** compound_statement
-** declaration_list
-*/
-
 class AstNonLabelStmt;
 class AstLabelStmt;
 class AstStmt;
@@ -28,18 +23,18 @@ public:
     AstNonLabelStmt(std::string nodeType);
 };
 
-class AstLabelStmt : public AstBase{
+class AstCompoundStmt: public AstNonLabelStmt{
 private:
-    string label;
-    AstStmt *stmt;
-    AstCondiExpr *constExpr;
+    AstDeclarationList* astDeclarationList;
+    AstStmtList* astStmtList;
+
 public:
-    AstLabelStmt(AstStmt *stmt, string label, AstCondiExpr *constExpr = nullptr);
+    AstCompoundStmt(AstDeclarationList* astDeclarationList, AstStmtList* astStmtList);
 
-    const std::string &getLabel() const;
+    AstDeclarationList* getAstDeclarationList() const;
 
-    AstCondiExpr *getAstCondiExpr() const;
-    AstStmt *getStmt() const;
+    AstStmtList* getAstStmtList() const;
+
 };
 
 class AstStmt: public AstBase{
@@ -50,7 +45,6 @@ public:
     AstStmt(AstBase* stmt);
     AstBase *getStmt() const;
 };
-
 
 class AstStmtList: public AstNonLabelStmt {
 private:
@@ -64,75 +58,64 @@ public:
     const std::vector<AstStmt *> &getStmtList() const;
 };
 
-class AstCompoundStmt: public AstNonLabelStmt{
+class AstExprStmt: public AstNonLabelStmt{
 private:
-    AstDeclarationList* astDeclarationList;
-    AstStmtList* astStmtList;
-
+    AstExpr *expr;
 public:
-    AstCompoundStmt(AstDeclarationList* astDeclarationList, AstStmtList* astStmtList);
+    AstExprStmt(AstExpr *expr);
 
-    AstDeclarationList* getAstDeclarationList() const;
+    AstExpr* getExpr();
 
-    AstStmtList* getAstStmtList() const;
-    
 };
 
 class AstSelectStmt: public AstNonLabelStmt {
 private:
-    AstExprList *expr;
-    AstStmt *stmt;
-    string type;
-    AstStmt *else_clause;
+    AstExpr *expr;
+    AstStmt *thenClause;
+    AstStmt *elseClause;
 
 public:
-    AstSelectStmt(AstExprList *, AstStmt*, string, AstStmt *else_clause);
+    AstSelectStmt(AstExpr *expr, AstStmt *thenClause, AstStmt *elseClause= nullptr);
 
-    AstExprList *getExpr() const;
+    AstExpr *getExpr() const;
 
-    AstStmt *getStmt() const;
+    AstStmt *getThenClause() const;
 
     AstStmt *getElseClause() const;
 
-    string getIfOrSwitch() const;
 };
 
 class AstIterStmt: public AstNonLabelStmt{
 private:
-    AstExprList *expr1;
-    AstExprList *expr2;
-    AstExprList *expr3;
-    AstStmt *stmt;
-    string type;
+    AstExpr *initialExpr;
+    AstExpr *judgeExpr;
+    AstExpr *updateExpr;
+    AstStmt *block;
 
 public:
-    AstIterStmt(string, AstStmt*, AstExprList *, AstExprList *, AstExprList *);
+    AstIterStmt(AstExpr *initialExpr, AstExpr *judgeExpr, AstExpr *updateExpr, AstStmt *block);
 
-    AstExprList *getExpr1() const;
+    AstExpr *getInitialExpr() const;
 
-    AstExprList *getExpr2() const;
+    AstExpr *getJudgeExpr() const;
 
-    AstExprList *getExpr3() const;
+    AstExpr *getUpdateExpr() const;
 
-    AstStmt *getStmt() const;
+    AstStmt *getBlock() const;
 
-    string getType() const;
 };
 
 class AstJmpStmt: public AstNonLabelStmt{
 private:
     string type;
-    string id;
-    AstExprList *expr;
+    AstExpr *expr;
 
 public:
-    AstJmpStmt(string type, string id, AstExprList *expr);
+    AstJmpStmt(string type, AstExpr *expr);
 
     string getType() const;
 
-    string getId() const;
-
-    AstExprList *getExpr() const;
+    AstExpr *getExpr() const;
 };
 
 #endif

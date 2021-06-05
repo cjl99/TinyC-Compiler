@@ -18,10 +18,13 @@
 %left '+' '-'
 %left '*' '/' '%'
 
+%type<ast_program> program
+%type<ast_ext_expr> external_declaration
+%type<ast_func_def> function_definition
+
 %start program
 
 %%
-
 program
 	: external_declaration{
 	    $$ = new AstProgram();
@@ -35,8 +38,21 @@ program
 	;
 
 external_declaration
-	: function_definition
-	| declaration
+	: function_definition{
+	    $$ = new AstExternalExpr($1, nullptr);
+	}
+	| declaration{
+	    $$ = new AstExternalExpr(nullptr, $1);
+	}
+	;
+
+function_definition
+	: type_specifier IDENTIFIER '(' parameter_list ')' compound_statement{
+		$$ = new AstFunDef($1,nullptr, $2, $4, $6);
+	}
+	| type_specifier pointer IDENTIFIER '(' parameter_list ')' compound_statement{
+		$$ = new AstFunDef($1, $2, $3, $5, $7);
+	}
 	;
 
 declaration
@@ -46,14 +62,14 @@ declaration
 	;
     
 type_specifier
-	: VOID
-	| CHAR
-	| SHORT
-	| INT
-	| LONG
-	| FLOAT
-	| DOUBLE
-	| struct_specifier
+	: VOID{ $$ = new AstSpec($1); }
+	| CHAR{ $$ = new AstSpec($1); }
+	| SHORT{ $$ = new AstSpec($1); }
+	| INT{ $$ = new AstSpec($1); }
+	| LONG{ $$ = new AstSpec($1); }
+	| FLOAT{ $$ = new AstSpec($1); }
+	| DOUBLE{ $$ = new AstSpec($1); }
+	| struct_specifier{ $$ = new AstSpec($1->getName()); }
 	;
 
 init_declarator_list
@@ -373,71 +389,113 @@ constant_expression
 	;
 
 struct_specifier
-	: STRUCT IDENTIFIER '{' struct_declaration_list '}'
-	| STRUCT '{' struct_declaration_list '}'
-	| STRUCT IDENTIFIER
+	: STRUCT IDENTIFIER '{' struct_declaration_list '}'{
+		$$ = new AstStructSpec($2, $4);
+	}
+	| STRUCT '{' struct_declaration_list '}'{
+		$$ = new AstStructSpec("", $3);
+	}
+	| STRUCT IDENTIFIER{
+		$$ = new AstStructSpec($2, nullptr);
+	}
 	;
 
 struct_declaration_list
-	: type_specifier declarator ';'
-	| struct_declaration_list type_specifier declarator ';'
+	: type_specifier declarator ';'{
+		$$ = new AstStructDeclarationList();
+		$$->addMember($1, $2);
+	}
+	| struct_declaration_list type_specifier declarator ';'{
+		$$ = $1;
+		$$->addMember($2, $3);
+	}
 	;
 
 identifier_list
-	: IDENTIFIER
-	| identifier_list ',' IDENTIFIER
+	: IDENTIFIER{
+		$$ = new AstIdList();
+		$$->addId($1);
+	}
+	| identifier_list ',' IDENTIFIER{
+		$$ = $1;
+		$$->addId($3);
+	}
 	;
 
 type_name
-	: type_specifier
-	| type_specifier pointer
+	: type_specifier{
+		$$ = new AstTypeName($1, nullptr);
+	}
+	| type_specifier pointer{
+		$$ = new AstTypeName($1, $2);
+	}
 	;
 
+statement_list
+	: statement{
+		$$ = new AstStmtList();
+		$$->addStmt($1);
+	}
+	| statement_list statement{
+		$$ = $1;
+		$$->addStmt($2);
+	}
+	;
 
 compound_statement
-	: '{' '}'
-	| '{' block_item_list '}'
-	;
-
-block_item_list
-	: block_item
-	| block_item_list block_item
-	;
-
-block_item
-	: declaration
-	| statement
+	: '{' '}'{
+		$$ = new AstCompoundStmt(nullptr, nullptr);
+	}
+	| '{' statement_list '}'{
+		$$ = new AstCompoundStmt(nullptr, $2);
+	}
+	| '{' declaration_list '}'{
+		$$ = new AstCompoundStmt($2, nullptr);
+	}
+	| '{' declaration_list statement_list '}'{
+		$$ = new AstCompoundStmt($2, $3);
+	}
 	;
 
 statement
-	: compound_statement
-	| expression_statement
-	| selection_statement
-	| iteration_statement
-	| jump_statement
+	: compound_statement{ $$ = $1; }
+	| expression_statement{ $$ = $1; }
+	| selection_statement{ $$ = $1; }
+	| iteration_statement{ $$ = $1; }
+	| jump_statement{ $$ = $1; }
 	;
 
 expression_statement
-	: ';'
-	| expression ';'
+	: ';' {$$ = nullptr;}
+	| expression ';' {$$ = new AstExprStmt($1); }
 	;
 
 selection_statement
-	: IF '(' expression ')' statement
-	| IF '(' expression ')' statement ELSE statement
+	: IF '(' expression ')' statement{
+		$$ = new AstSelectStmt($3, $5);
+	}
+	| IF '(' expression ')' statement ELSE statement{
+		$$ = new AstSelectStmt($3, $5, $7);
+	}
 	;
 
 iteration_statement
-	: WHILE '(' expression ')' statement
-	| FOR '(' expression_statement expression_statement ')' statement
-	| FOR '(' expression_statement expression_statement expression ')' statement
+	: WHILE '(' expression ')' statement{
+		$$ = new AstIterStmt(nullptr, $3, nulltpr, $5);
+	}
+	| FOR '(' expression_statement expression_statement ')' statement{
+		$$ = new AstIterStmt($3, $4, nulltpr, $6);
+	}
+	| FOR '(' expression_statement expression_statement expression ')' statement{
+		$$ = new AstIterStmt($3, $4, $5, $7);
+	}
 	;
 
 jump_statement
-	: CONTINUE ';'
-	| BREAK ';'
-	| RETURN ';'
-	| RETURN expression ';'
+	: CONTINUE ';'{ $$ = new AstJmpStmt($1, nullptr);}
+	| BREAK ';'   { $$ = new AstJmpStmt($1, nullptr);}
+	| RETURN ';'  { $$ = new AstJmpStmt($1, nullptr);}
+	| RETURN expression ';' { $$ = new AstJmpStmt($1, $2);}
 	;
 
 %%

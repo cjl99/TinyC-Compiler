@@ -5,33 +5,16 @@ AstNonLabelStmt::AstNonLabelStmt(std::string nodeType)
 
 // ===============================================
 
-AstLabelStmt:: AstLabelStmt(AstStmt *stmt, string label, AstCondiExpr *constExpr)
-            : AstBase("labeled_statement"), stmt(stmt), label(label), constExpr(constExpr){}
-
-const string& AstLabelStmt:: getLabel() const{
-    return label;
-}
-
-AstCondiExpr *AstLabelStmt::getAstCondiExpr() const{
-    return constExpr;
-}
-
-AstStmt *AstLabelStmt:: getStmt() const{
-    return stmt;
-};
-
-// ===============================================
-
 AstStmt:: AstStmt(AstBase* stmt)
         : AstBase("statement"), stmt(stmt){}
 
 AstBase * AstStmt::getStmt() const{
     return stmt;
 }
-// ===============================================
 
+// ===============================================
 AstStmtList:: AstStmtList()
-            :AstNonLabelStmt("statement_list"){}
+        :AstNonLabelStmt("statement_list"){}
 
 void AstStmtList:: addStmt(AstStmt * stmt){
     stmt_list.push_back(stmt);
@@ -40,7 +23,6 @@ void AstStmtList:: addStmt(AstStmt * stmt){
 const std::vector<AstStmt *> & AstStmtList::getStmtList() const{
     return stmt_list;
 }
-
 // ===============================================
 
  AstCompoundStmt::AstCompoundStmt(AstDeclarationList* astDeclarationList,AstStmtList* astStmtList)
@@ -57,64 +39,57 @@ AstStmtList* AstCompoundStmt::getAstStmtList() const{
 }
 
 // ===============================================
+AstExprStmt::AstExprStmt(AstExpr *expr)
+            :AstNonLabelStmt("expression_statement"), expr(expr){}
 
-AstSelectStmt::AstSelectStmt(AstExprList *expr, AstStmt* stmt, string type, AstStmt *else_clause = nullptr)
-            :AstNonLabelStmt("selection_statement"),expr(expr), stmt(stmt), type(type), else_clause(else_clause){}
-
-AstExprList * AstSelectStmt::getExpr() const{
+AstExpr* AstExprStmt::getExpr(){
     return expr;
 }
 
-AstStmt * AstSelectStmt::getStmt() const{
-    return stmt;
+// ===============================================
+AstSelectStmt(AstExpr *expr, AstStmt *thenClause, AstStmt *elseClause)
+            :AstNonLabelStmt("selection_statement"),expr(expr), thenClause(thenClause), elseClause(elseClause){}
+
+AstExpr *AstSelectStmt::getExpr() const{
+    return expr;
 }
 
-AstStmt * AstSelectStmt::getElseClause() const{
-    return else_clause;
+AstStmt *AstSelectStmt::getThenClause() const{
+    return thenClause;
 }
 
-string AstSelectStmt::getIfOrSwitch() const{
-    return type;
+AstStmt *AstSelectStmt::getElseClause() const{
+    return elseClause;
 }
 
 // ===============================================
+AstIterStmt::AstIterStmt(AstExpr *initialExpr, AstExpr *judgeExpr, AstExpr *updateExpr, AstStmt *block)
+            :AstNonLabelStmt("iteration_statement"),  block(block), initialExpr(initialExpr), judgeExpr(judgeExpr), updateExpr(updateExpr){}
 
-AstIterStmt::AstIterStmt(string type, AstStmt* stmt, AstExprList *expr1, AstExprList *expr2= nullptr, AstExprList *expr3 = nullptr)
-            : AstNonLabelStmt("iteration_statement"), type(type), stmt(stmt), expr1(expr1), expr2(expr2), expr3(expr3){}
-
-AstExprList * AstIterStmt::getExpr1() const{
-    return expr1;
+AstExpr *AstIterStmt::getInitialExpr() const{
+    return initialExpr;
 }
 
-AstExprList * AstIterStmt::getExpr2() const{
-    return expr2;
+AstExpr *AstIterStmt::getJudgeExpr() const{
+    return judgeExpr;
 }
 
-AstExprList * AstIterStmt::getExpr3() const{
-    return expr3;
+AstExpr *AstIterStmt::getUpdateExpr() const{
+    return initialExpr;
 }
 
-AstStmt * AstIterStmt::getStmt() const{
-    return stmt;
-}
-
-string AstIterStmt::getType() const{
-    return type;
+AstStmt *AstIterStmt::getBlock() const{
+    return block;
 }
 
 // ===============================================
-
-AstJmpStmt::AstJmpStmt(string type, string id = "", AstExprList *expr = nullptr)
-            :AstNonLabelStmt("jump_statement"), type(type),id(id), expr(expr){}
+AstJmpStmt::AstJmpStmt(string type, AstExpr *expr)
+        :AstNonLabelStmt("jump_statement"), type(type), expr(expr){}
 
 string AstJmpStmt::getType() const{
     return type;
 }
 
-string AstJmpStmt::getId() const{
-    return id;
-}
-
-AstExprList *AstJmpStmt::getExpr() const{
+AstExpr *AstJmpStmt::getExpr() const{
     return expr;
 }
