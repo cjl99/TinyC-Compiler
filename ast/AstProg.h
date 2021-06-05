@@ -29,18 +29,19 @@ private:
     AstDeclaration* declaration;
 };
 
-//-------------------Todo-----------------------------
+
 class AstFunDef: public AstBase{
 public:
-    AstFunDef(string returnType, AstPointer* pointer, string funcName, AstParamList* paramList, AstCompoundStmt* compound_statement);
+    AstFunDef(AstSpec* spec, AstPointer* pointer, string funcName, AstParamList* paramList, AstCompoundStmt* compound_statement);
     string getReturnType();
     string getFuncName();
-    std::vector<std::pair<string, string> > getParamList();
+    std::vector<std::pair<AstSpec*, AstDeclarator*> > getParamList();
     AstCompoundStmt* getCompound_statement() const;
 private:
     string returnType;
+    int returnPtrLevel;
     string funcName;
-    std::vector<std::pair<string, string> > paramList;
+    std::vector<std::pair<AstSpec*, AstDeclarator*> > paramList;
     AstCompoundStmt* compound_statement;
 };
 

@@ -48,18 +48,11 @@ external_declaration
 
 function_definition
 	: type_specifier IDENTIFIER '(' parameter_list ')' compound_statement{
-		$$ = new AstFunDef($1->getLabel(),nullptr, $2, $4, $6);
+		$$ = new AstFunDef($1,nullptr, $2, $4, $6);
 	}
 	| type_specifier pointer IDENTIFIER '(' parameter_list ')' compound_statement{
-		$$ = new AstFunDef($1->getLabel(),$2, $3, $5, $7);
+		$$ = new AstFunDef($1, $2, $3, $5, $7);
 	}
-
-	;
-
-parameter_list
-    :
-    | type_specifier declarator
-	| parameter_list ',' type_specifier declarator
 	;
 
 declaration
@@ -157,11 +150,6 @@ pointer
 		$2->addOneStar();
 		$$ = $2;
 	}
-	;
-
-function_definition
-	: type_specifier IDENTIFIER '(' parameter_list ')' compound_statement
-	| type_specifier pointer IDENTIFIER '(' parameter_list ')' compound_statement
 	;
 
 parameter_list 
@@ -297,13 +285,23 @@ struct_declaration_list
 	;
 
 identifier_list
-	: IDENTIFIER
-	| identifier_list ',' IDENTIFIER
+	: IDENTIFIER{
+		$$ = new AstIdList();
+		$$->addId($1);
+	}
+	| identifier_list ',' IDENTIFIER{
+		$$ = $1;
+		$$->addId($3);
+	}
 	;
 
 type_name
-	: type_specifier
-	| type_specifier pointer
+	: type_specifier{
+		$$ = new AstTypeName($1, nullptr);
+	}
+	| type_specifier pointer{
+		$$ = new AstTypeName($1, $2);
+	}
 	;
 
 statement_list

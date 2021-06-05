@@ -8,13 +8,20 @@ using namespace std;
 
 class AstStructDeclarationList{
 private:
-    vector<pair<string, string> > members;
+    vector<string> memRawType;
+    vector<int> ptrLevel;
+    vector<string> memName;
 public:
     AstStructDeclarationList();
 
     void addMember(AstSpec* spec, AstDeclarator* declarator);
 
-    vector<pair<string, string> > getMembers() const ;
+    vector<string> getMemRawType() const;
+
+    vector<int> getPtrLevel() const;
+
+    vector<string> getMemName() const;
+
 };
 
 class AstStructSpec{

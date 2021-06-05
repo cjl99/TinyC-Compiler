@@ -8,8 +8,8 @@
 #include "AstBase.h"
 
 class AstSpec;
-class AstSpecList;
-class AstTypeQualList;
+class AstTypeName;
+class AstIdList;
 
 class AstSpec: public AstBase{
 private:
@@ -21,5 +21,26 @@ public:
     std::string getLabel() const;
 };
 
+class AstTypeName: public AstBase{
+private:
+    string type;
+    int ptrLevel;
+public:
+    AstTypeName(AstSpec *spec, AstPointer *pointer);
 
+    string getType();
+
+    int getPtrLevel();
+};
+
+class AstIdList: public AstBase{
+private:
+   std::vector<string> identifiers;
+public:
+    AstIdList();
+
+    void addId(string id);
+
+    std::vector<string> getIdentifiers();
+};
 #endif //OUR_C_COMPILER_ASTTYPE_H

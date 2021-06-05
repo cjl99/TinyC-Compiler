@@ -20,20 +20,26 @@ AstDeclaration* AstExternalExpr::getDeclaration() const{
     return declaration;
 }
 
-//-------------------Todo----------------------
-AstFunDef::AstFunDef(string returnType, AstPointer* pointer, string funcName, AstParamList* paramList, AstCompoundStmt* compound_statement)
-        :AstBase("function_definition"), returnType(returnType), funcName(funcName), compound_statement(compound_statement){
-
+//====================================================
+AstFunDef::AstFunDef(AstSpec* spec, AstPointer* pointer, string funcName, AstParamList* paramList, AstCompoundStmt* compound_statement)
+        :AstBase("function_definition"), funcName(funcName), compound_statement(compound_statement){
+    returnType = spec->getLabel();
+    returnPtrLevel = pointer->getStarNum();
+    this->paramList = paramList->getParamList();
 }
+
 string AstFunDef::getReturnType(){
     return returnType;
 }
+
 string AstFunDef::getFuncName(){
     return funcName;
 }
-std::vector<std::pair<string, string> > AstFunDef::getParamList(){
+
+std::vector<std::pair<AstSpec*, AstDeclarator*> > AstFunDef::getParamList(){
     return paramList;
 }
+
 AstCompoundStmt* AstFunDef::getCompound_statement() const{
     return compound_statement;
 }
