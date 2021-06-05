@@ -52,22 +52,8 @@ bool AstInitDeclarator::hasEqual() {
 AstInitializer * AstInitDeclarator::getInitializer() {
     return this->astInitializer;
 }
-AstDeclarator * AstInitDeclarator::getInitDeclarator() {
+AstDeclarator * AstInitDeclarator::getDeclarator() {
     return this->astDeclarator;
-}
-
-// AstInitializer
-AstInitializer::AstInitializer(AstExpression *astExpression, AstInitList *astInitList)
-: AstDecl("initializer")
-{
-    this->astExpression = astExpression;
-    this->astInitList = astInitList;
-}
-AstInitList * AstInitializer::getInitList() {
-    return this->astInitList;
-}
-AstExpression * AstInitializer::getExpression() {
-    return this->astExpression;
 }
 
 // AstInitList;
@@ -105,7 +91,7 @@ AstDirectDeclarator::AstDirectDeclarator(std::string identifier)
 std::string AstDirectDeclarator::getIdentifier() {
     return this->identifier;
 }
-std::vector<std::pair<int, void *>> & AstDirectDeclarator::getDirectDeclarator() {
+std::vector<std::pair<int, void *>> & AstDirectDeclarator::getDirectDeclaratorPair() {
     return this->DirectDeclarator_Pair;
 }
 void AstDirectDeclarator::addToDirectDecl(int type, void *ptr) {

@@ -7,6 +7,7 @@
 
 #include "AstBase.h"
 #include "AstType.h"
+#include "AstDecl.h"
 #include <string>
 
 class AstExpr;
@@ -70,7 +71,7 @@ class AstArgExprList : public AstExpr {
 public:
     AstArgExprList();
     void addExpression(AstExpression* astExpression);
-    std::vector<AstExpression*>& getAstAssignExprList();
+    std::vector<AstExpression*>& getAstExpression();
 private:
     std::vector<AstExpression*> astArgExprList;
 };
@@ -118,8 +119,10 @@ public:
     AstUnaryExpr* getUnaryExpr();
     AstCastExpr* getCastExpr();
     AstTypeName* getAstTypeName();
+    bool isUnaryExpr();
+
 private:
-    bool isUnaryExpr;
+    bool isUnary;
     AstUnaryExpr* astUnaryExpr;
     AstTypeName* astTypeName;
     AstCastExpr* astCastExpr;
@@ -132,6 +135,7 @@ public:
     AstPrimaryExpr(int type, AstExpression *astExpression);
     AstExpression* getExpression();
     std::string getLabel();
+    int getType();
 
 private:
     int type;
@@ -158,6 +162,19 @@ private:
     AstPostfixExpr* child_postfix;
     std::string identifier;
     std::string op;
+};
+
+
+class AstInitializer: public AstDecl {
+public:
+    AstInitializer(AstExpression *astExpression, AstInitList *astInitList);
+    AstExpression *getExpression();
+    AstInitList *getInitList();
+    bool isExpression();
+
+private:
+    AstExpression *astExpression;
+    AstInitList *astInitList;
 };
 
 

@@ -99,7 +99,7 @@ AstArgExprList::AstArgExprList()
 void AstArgExprList::addExpression(AstExpression *astExpression) {
     this->astArgExprList.push_back(astExpression);
 }
-std::vector<AstExpression *> & AstArgExprList::getAstAssignExprList() {
+std::vector<AstExpression *> & AstArgExprList::getAstExpression() {
     return this->astArgExprList;
 }
 
@@ -138,13 +138,13 @@ bool AstBinaryExpr::isCastExpr() {
 AstCastExpr::AstCastExpr(AstUnaryExpr *astUnaryExpr)
 : AstExpr("cast_expression")
 {
-    this->isUnaryExpr = true;
+    this->isUnary = true;
     this->astUnaryExpr = astUnaryExpr;
 }
 AstCastExpr::AstCastExpr(AstTypeName *astTypeName, AstCastExpr *astCastExpr)
 :AstExpr("cast_expression")
 {
-    this->isUnaryExpr = false;
+    this->isUnary = false;
     this->astTypeName = astTypeName;
     this->astCastExpr = astCastExpr;
 }
@@ -156,6 +156,9 @@ AstUnaryExpr * AstCastExpr::getUnaryExpr() {
 }
 AstTypeName * AstCastExpr::getAstTypeName() {
     return this->astTypeName;
+}
+bool AstCastExpr::isUnaryExpr() {
+    return this->isUnary;
 }
 
 // class AstPrimaryExpr;
@@ -217,4 +220,21 @@ AstPostfixExpr * AstPostfixExpr::getAstPostfixExpr() {
     return this->child_postfix;
 }
 
+int AstPrimaryExpr::getType() {
+    return this->type;
+}
+
+// AstInitializer
+AstInitializer::AstInitializer(AstExpression *astExpression, AstInitList *astInitList)
+: AstDecl("initializer")
+{
+    this->astExpression = astExpression;
+    this->astInitList = astInitList;
+}
+AstInitList * AstInitializer::getInitList() {
+    return this->astInitList;
+}
+AstExpression * AstInitializer::getExpression() {
+    return this->astExpression;
+}
 

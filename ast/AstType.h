@@ -8,9 +8,6 @@
 #include "AstBase.h"
 
 class AstSpec;
-class AstTypeName;
-class AstIdList;
-
 class AstSpec: public AstBase{
 private:
     std::string label;

@@ -39,6 +39,7 @@ public:
     string getFuncName();
     int getReturnPtrLevel();
     std::vector<std::pair<AstSpec*, AstDeclarator*> > getParamList();
+    AstParamList *getAstParamList();
     AstCompoundStmt* getCompound_statement() const;
     Value* codeGen(CodeGen &context);
 private:
@@ -46,6 +47,7 @@ private:
     int returnPtrLevel;
     string funcName;
     std::vector<std::pair<AstSpec*, AstDeclarator*> > paramList;
+    AstParamList *astParamList;
     AstCompoundStmt* compound_statement;
 };
 
