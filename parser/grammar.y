@@ -27,7 +27,7 @@ program
 	    $$->addExternalExpr($1);
 	    astRoot = $$
 	}
-	| program external_declaration{
+	| program external_declaration {
 	    $$ = $1;
 	    $$->addExternalExpr($1);
 	}
@@ -39,7 +39,9 @@ external_declaration
 	;
 
 declaration
-	: type_specifier init_declarator_list ';'
+	: type_specifier init_declarator_list ';' {
+		$$ = new AstDeclaration($1, $2);
+	}
 	;
     
 type_specifier
@@ -54,41 +56,83 @@ type_specifier
 	;
 
 init_declarator_list
-	: init_declarator
-	| init_declarator_list ',' init_declarator
+	: init_declarator {
+		$$ = new AstInitDeclList();
+		$$->addInitDecl($1);
+	}
+	| init_declarator_list ',' init_declarator {
+		$1->addInitDecl($3);
+		$$ = $1;
+	}
 	;
 
 init_declarator
-	: declarator
-	| declarator '=' initializer
+	: declarator {
+		$$ = new AstInitDeclarator($1, nullptr);
+	}
+	| declarator '=' initializer {
+		$$ = new AstInitDeclarator($1, $3);
+	}
 	;
 
 initializer
-	: expression
-	| '{' initializer_list '}'
-	| '{' initializer_list ',' '}'
+	: expression {
+		$$ = new AstInitializer($1, nullptr);
+	}
+	| '{' initializer_list '}' {
+		$$ = new AstInitializer(nullptr, $2);
+	}
+	| '{' initializer_list ',' '}' {
+		$$ = new AstInitializer(nullptr, $2);
+	}
 	;
 
 initializer_list
-	: initializer
-	| initializer_list ',' initializer
+	: initializer {
+		$$ = new AstInitList();
+		$$->addInitializer($1);
+	}
+	| initializer_list ',' initializer {
+		$1->addInitializer($3);
+		$$ = $1;
+	}
 	;
 
 declarator
-	: pointer direct_declarator
-	| direct_declarator
+	: pointer direct_declarator {
+		$$ = new AstDeclarator($1, $2);
+	}
+	| direct_declarator {
+		$$ = new AstDeclarator(nullptr, $2);
+	}
 	;
 
 direct_declarator
-	: IDENTIFIER
-	| direct_declarator '[' CONSTANT ']'
-	| direct_declarator '[' ']'
-	| direct_declarator '(' identifier_list ')'
+	: IDENTIFIER {
+		$$ = new AstDirectDeclarator($1);
+	}
+	| direct_declarator '[' CONSTANT ']' {
+		$1->addToDirectDecl(1, $3);
+		$$ = $1;
+	}
+	| direct_declarator '[' ']' {
+		$$->addToDirectDecl(2, nullptr);
+		$$ = $1;
+	}
+	| direct_declarator '(' identifier_list ')' {
+		$1->addToDirectDecl(1, $3);
+		$$ = $1;
+	}
 	;
 
 pointer
-	: '*'
-	| '*' pointer
+	: '*' {
+		$$ = new AstPointer();
+	}
+	| '*' pointer {
+		$2->addOneStar();
+		$$ = $2;
+	}
 	;
 
 function_definition
@@ -97,9 +141,17 @@ function_definition
 	;
 
 parameter_list 
-    : 
-    | type_specifier declarator
-	| parameter_list ',' type_specifier declarator
+    : {
+		$$ = new AstParamList(false);
+	}
+    | type_specifier declarator {
+		$$ = new AstParamList(true);
+		$$->addParam($1, $2);
+	}
+	| parameter_list ',' type_specifier declarator {
+		$1->addParam($2, $3);
+		$$  = $1;
+	}
 	;
 
 
