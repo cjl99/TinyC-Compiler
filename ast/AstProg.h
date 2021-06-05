@@ -19,21 +19,6 @@ private:
     std::vector<AstExternalExpr *> externalExpr;
 };
 
-class AstFunDef: public AstBase{
-public:
-    AstFunDef(AstCompoundStmt* compound_statement, AstDeclarator* declarator, AstDeclarationList* declarationList,  AstSpecList* declarationSpec);
-    AstSpecList* getDeclarationSpec() const;
-    AstDeclarator* getDeclarator() const;
-    AstDeclarationList* getDeclarationList() const;
-    AstCompoundStmt* getCompound_statement() const;
-private:
-    AstSpecList* declarationSpec;
-    AstDeclarator* declarator;
-    AstDeclarationList* declarationList;
-    AstCompoundStmt* compound_statement;
-    
-};
-
 class AstExternalExpr: public AstBase{
 public:
     AstExternalExpr(AstFunDef* funDef, AstDeclaration* declaration);
@@ -41,6 +26,23 @@ public:
     AstDeclaration* getDeclaration() const;
 private:
     AstFunDef* funDef;
-    AstDeclaration* declaration;  
+    AstDeclaration* declaration;
 };
+
+//-------------------Todo-----------------------------
+class AstFunDef: public AstBase{
+public:
+    AstFunDef(string returnType, AstPointer* pointer, string funcName, AstParamList* paramList, AstCompoundStmt* compound_statement);
+    string getReturnType();
+    string getFuncName();
+    std::vector<std::pair<string, string> > getParamList();
+    AstCompoundStmt* getCompound_statement() const;
+private:
+    string returnType;
+    string funcName;
+    std::vector<std::pair<string, string> > paramList;
+    AstCompoundStmt* compound_statement;
+};
+
+
 #endif

@@ -1,5 +1,6 @@
 #include "AstProg.h"
 
+//============================================
 AstProgram::AstProgram() 
             :AstBase("program"){}
 void AstProgram::addExternalExpr(AstExternalExpr* extExpr){
@@ -9,27 +10,7 @@ std::vector<AstExternalExpr *> AstProgram::getExternalExpr(){
     return externalExpr;
 }
 
-AstFunDef::AstFunDef(AstCompoundStmt* compound_statement, AstDeclarator* declarator, AstDeclarationList* declarationList,  AstSpecList* declarationSpec)
-            :AstBase("function")
-{
-    this->compound_statement = compound_statement;
-    this->declarator = declarator;
-    this->declarationList = declarationList;
-    this->declarationSpec = declarationSpec;
-}
-AstSpecList* AstFunDef::getDeclarationSpec() const{
-    return declarationSpec;
-}
-AstDeclarator* AstFunDef::getDeclarator() const{
-    return declarator;
-}
-AstDeclarationList* AstFunDef::getDeclarationList() const{
-    return declarationList;
-}
-AstCompoundStmt* AstFunDef::getCompound_statement() const{
-    return compound_statement;
-}
-
+//============================================
 AstExternalExpr::AstExternalExpr(AstFunDef* funDef, AstDeclaration* declaration)
                 : AstBase("external_expression"),funDef(funDef),declaration(declaration){}
 AstFunDef* AstExternalExpr::getFunDef() const{
@@ -38,3 +19,22 @@ AstFunDef* AstExternalExpr::getFunDef() const{
 AstDeclaration* AstExternalExpr::getDeclaration() const{
     return declaration;
 }
+
+//-------------------Todo----------------------
+AstFunDef::AstFunDef(string returnType, AstPointer* pointer, string funcName, AstParamList* paramList, AstCompoundStmt* compound_statement)
+        :AstBase("function_definition"), returnType(returnType), funcName(funcName), compound_statement(compound_statement){
+
+}
+string AstFunDef::getReturnType(){
+    return returnType;
+}
+string AstFunDef::getFuncName(){
+    return funcName;
+}
+std::vector<std::pair<string, string> > AstFunDef::getParamList(){
+    return paramList;
+}
+AstCompoundStmt* AstFunDef::getCompound_statement() const{
+    return compound_statement;
+}
+

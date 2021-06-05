@@ -21,21 +21,5 @@ public:
     std::string getLabel() const;
 };
 
-class AstSpecList : public AstBase {
-private:
-    std::vector<AstSpec *> spec_list;
-
-public:
-    AstSpecList();
-
-    void addSpecifier(AstSpec *);
-
-    const std::vector<AstSpec *> &getSpecList() const;
-};
-
-// AstTypeQualifier = AstSpec
-class AstTypeQualList: public AstSpecList{
-    
-};
 
 #endif //OUR_C_COMPILER_ASTTYPE_H

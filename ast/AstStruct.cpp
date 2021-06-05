@@ -1,59 +1,30 @@
 #include "AstStruct.h"
-AstComplexSpec::AstComplexSpec(string nodeType, string type, string id)
-                :AstBase(nodeType),type(type),id(id){}
 
-string AstComplexSpec::getType() const{
-    return type;
+AstStructDeclarationList::AstStructDeclarationList(){}
+
+void AstStructDeclarationList::addMember(AstSpec* spec, AstDeclarator* declarator){
+    string rawType = spec->getLabel();
+    string memName;
+    string memType;
+//================Todo================================
+
+    members.push_back(make_pair(memType, memName));
 }
 
-string AstComplexSpec::getId() const{
-    return id;
+vector<pair<string, string> > AstStructDeclarationList::getMembers() const{
+    return members;
 }
 
-// ===============================================
-AstStructOrUnionSpec::AstStructOrUnionSpec(string label, string id, AstStructDeclList *structList)
-                    :AstComplexSpec("struct_or_union_specifier",label, id), structList(structList) {}
-
-AstStructDeclList *AstStructOrUnionSpec::getStructList() const{
-    return structList;
+//=====================================================
+AstStructSpec::AstStructSpec(string name, AstStructDeclarationList* structDeclaration)
+                : name(name){
+    members = structDeclaration->getMembers();
 }
 
-// ===============================================
-AstEnumSpec::AstEnumSpec(string type, string id, AstEnumList *enumList)
-            :AstComplexSpec("enum_specifier",type, id), enumList(enumList){}
-
-AstEnumList *AstEnumSpec::getEnumList() const{
-    return enumList;
+string AstStructSpec::getName() const{
+    return name;
 }
 
-// ===============================================
-AstEnumList::AstEnumList()
-            :AstBase("enumerator_list"){}
-
-void AstEnumList::addEnumerator(AstEnumerator *astEnumerator){
-    enumList.push_back(astEnumerator);
-}
-
-const std::vector<AstEnumerator *> &AstEnumList::getEnumList() const{
-    return enumList;
-}
-
-// ===============================================
-AstEnumerator::AstEnumerator(string label, AstCondiExpr *constExpr)
-            :label(label), constExpr(constExpr){}
-
-AstExpr *AstEnumerator::getConstExpr() const{
-    return constExpr;
-}
-
-string AstEnumerator::getLabel() const{
-    return label;
-}
-
-// ===============================================
-AstTypeSpec::AstTypeSpec(std::string label, AstComplexSpec *complexSpec) 
-            :AstSpec(label), complexSpec(complexSpec){}
-
-AstComplexSpec *AstTypeSpec::getComplexSpec() const {
-    return this->complexSpec;
+vector<pair<string, string> > AstStructSpec::getMembers() const{
+    return members;
 }
