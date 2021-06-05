@@ -3,12 +3,12 @@
 
 #include <iostream>
 #include <vector>
-#include <deque>
-#include <queue>
+#include <map>
 #include <tuple>
 #include <string>
-#include <llvm/IR/Constants.h>
-#include <llvm/IR/Function.h>
+
+// #include <llvm/IR/Constants.h>
+// #include <llvm/IR/Function.h>
 
 
 // base class of all ASTs
@@ -17,13 +17,10 @@ public:
     AstBase() = default;
     AstBase(std::string nodeType);
     std::string getNodeType() const;
-    virtual Value *codeGen() = 0;
+    virtual Value *codegen() = 0;
 
 private:
     std::string nodeType;
-
-//    virtual std::optional<int> Eval(Interpreter &intp) const = 0;
-//    virtual ValPtr GenerateIR(IRGenerator &gen) const = 0;
 };
 
 #endif //OUR_C_COMPILER_ASTBASE_H
