@@ -15,6 +15,7 @@ public:
     AstProgram();
     void addExternalExpr(AstExternalExpr* extExpr);
     std::vector<AstExternalExpr *> getExternalExpr();
+    Value* codeGen();
 private:
     std::vector<AstExternalExpr *> externalExpr;
 };
@@ -24,6 +25,7 @@ public:
     AstExternalExpr(AstFunDef* funDef, AstDeclaration* declaration);
     AstFunDef* getFunDef() const;
     AstDeclaration* getDeclaration() const;
+    Value* codeGen();
 private:
     AstFunDef* funDef;
     AstDeclaration* declaration;
@@ -38,6 +40,7 @@ public:
     int getReturnPtrLevel();
     std::vector<std::pair<AstSpec*, AstDeclarator*> > getParamList();
     AstCompoundStmt* getCompound_statement() const;
+    Value* codeGen(CodeGen &context);
 private:
     string returnType;
     int returnPtrLevel;

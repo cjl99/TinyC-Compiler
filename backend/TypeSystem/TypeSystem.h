@@ -36,6 +36,7 @@ private:
     LLVMContext& llvmContext;
 
 public:
+    TypeSystem(LLVMContext& llvmContext);
     // built-in type
     Type* voidTy = Type::getVoidTy(llvmContext);
     Type* charTy = Type::getInt8Ty(llvmContext);
@@ -62,7 +63,7 @@ public:
 
     unique_ptr<Type> getStructType(string name);
 
-    Type* getType(string specifiers);
+    Type* getType(string specifiers, int ptrLevel=0);
 
 };
 

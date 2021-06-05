@@ -8,39 +8,62 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Verifier.h"
+#include "../TypeSystem/TypeSystem.h"
 #include <map>
 #include <vector>
 #include <tuple>
 #include <iostream>
 
+class CodeBlock;
+class GlobalVarBlock;
+class CodeGen;
+
 class CodeGen {
+private:
+    // main's value included in here
+    static std::vector<CodeBlock *> code_stack;
+
 public:
-    static std::unique_ptr<LLVMContext> TheContext;
+    static LLVMContext llvmContext;
     static std::unique_ptr<Module> TheModule;
     static std::unique_ptr<IRBuilder<>> Builder;
 
-    // main's value included in here
-    static std::vector<CodeBlock *> code_stack;
-    static std::vector<FuncBlock *> func_stack;
+    GlobalVarBlock *globalVars;
+    std::map<std::string, llvm::Function*> functions;
+    TypeSystem typeSystem;
+
+    CodeGen(): Builder(llvmContext), typeSystem(llvmContext){
+        theModule = unique_ptr<Module>(new Module("main", this->llvmContext));
+        globalVars = new GlobalVarBlock();
+    }
+
+    llvm::Value* getSymbolValue(string name) const();
+    llvm::Type* getSymbolType(string name) const();
+    void setSymbolValue(string name, Value* value)();
+    void setSymbolType(string name, Type* type)();
+    CodeBlock* currentBlock() const();
+    void pushBlock(CodeBlock * block);
+    void popBlock();
+
 };
 
 
 class CodeBlock {
+private:
     std::map<std::string, llvm::Value*> named_values;
     std::map<std::string, llvm:Type*> named_types;
-
-    CodeBlock* CreateCodeBlock();
+    Value * returnValue = nullptr;
+    llvm::BasicBlock *block;
+    std::vector<llvm::BasicBlock *> loopBreaks;
+public:
+    CodeBlock(llvm::BasicBlock *block){
+        this->block = block;
+    }
 };
 
 class GlobalVarBlock : public CodeBlock {
 
 };
-
-class FuncBlock {
-    std::map<std::string, llvm::Function*> named_functions;
-    FuncBlock* CreateFuncBlock();
-};
-
 
 Value *LogErrorV(const char *Str) {
     LogError(Str);

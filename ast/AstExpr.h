@@ -35,6 +35,7 @@ public:
     AstAssignOp* getAssignOp();
     AstExpression* getExpression();
     bool isConditionalExpr();
+    llvm::Value* codeGen(CodeGen &context);
 private:
     bool isCondi = true;
     AstCondiExpr* astCondiExpr;

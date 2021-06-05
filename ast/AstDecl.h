@@ -31,6 +31,7 @@ public:
     AstDeclaration(AstSpec* astSpec, AstInitDeclList* astInitDeclList);
     AstSpec* getTypeSpec(); 
     AstInitDeclList* getInitDeclList();
+    llvm::Value* codeGen(CodeGen &context);
 private:
     AstSpec* astTypeSpec;
     AstInitDeclList* astInitDeclList;
@@ -41,6 +42,7 @@ public:
     AstDeclarationList();
     void addDeclaration(AstDeclaration* declaration);
     std::vector<AstDeclaration*>& getDeclarationList();
+    llvm::Value* codeGen(CodeGen &context)
 private:
     std::vector<AstDeclaration*> declarationList;
 };
@@ -50,6 +52,7 @@ public:
     AstInitDeclList();
     void addInitDeclarator(AstInitDeclarator* astInitDeclarator);
     std::vector<AstInitDeclarator *>& getInitDeclList();
+
 private:
     std::vector<AstInitDeclarator *> astInitDeclList;
 };

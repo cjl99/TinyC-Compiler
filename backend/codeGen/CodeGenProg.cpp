@@ -1,20 +1,19 @@
 #include "../../ast/AstProg.h"
 #include "CodeGen.h"
 
-Value *AstProgram::codegen() {
+Value *AstProgram::codeGen() {
     std::vector<AstExternalExpr *> external_exprlist = this->getExternalExpr();
 
     for(auto external_expr: external_exprlist) {
         Value *tp = external_expr->codegen();
         if(tp==nullptr) return LogErrorV("AstProgram codegen error!");
     }
-
     return nullptr;
 }
 
 
-Value *AstExternalExpr::codegen() {
-    bool is_decl = this->isdecl; // true is declaration & false is function
+Value *AstExternalExpr::codeGen() {
+    bool is_decl = (this->getDeclaration()!=nullptr); // true is declaration & false is function
 
     Value *v;
     if(is_decl) {
@@ -27,116 +26,60 @@ Value *AstExternalExpr::codegen() {
     return v;
 }
 
-llvm::Value* NFunctionDeclaration::codeGen(CodeGenContext &context) {
-    cout << "Generating function declaration of " << this->id->name << endl;
-    std::vector<Type*> argTypes;
+llvm::Value* AstFunDef::codegen(CodeGen &context) {
 
-    for(auto &arg: *this->arguments){
-        if( arg->type->isArray ){
-            argTypes.push_back(PointerType::get(context.typeSystem.getVarType(arg->type->name), 0));
-        } else{
-            argTypes.push_back(TypeOf(*arg->type, context));
+    Type* retType = context.typeSystem.getType(this->getReturnType(), this->getReturnPtrLevel());
+    std::string funcName = this->getFuncName();
+
+    std::vector<Type*> argTypes;
+    std::vector<std::pair<AstSpec*, AstDeclarator*>> paramList = this->getParamList();
+    for(auto param:paramList){
+        if(!param.second->hasPointer())
+            argTypes.push_back(contex.typeSystem.getType(param.first->getLabel()));
+        else{
+            int ptrLevel = param.second->getPointer()->getStarNum();
+            argTypes.push_back(contex.typeSystem.getType(param.first->getLabel(), ptrLevel));
         }
     }
-    Type* retType = nullptr;
-    if( this->type->isArray )
-        retType = PointerType::get(context.typeSystem.getVarType(this->type->name), 0);
-    else
-        retType = TypeOf(*this->type, context);
 
     FunctionType* functionType = FunctionType::get(retType, argTypes, false);
-    Function* function = Function::Create(functionType, GlobalValue::ExternalLinkage, this->id->name.c_str(), context.theModule.get());
+    Function* function = Function::Create(functionType, GlobalValue::ExternalLinkage, funcName, context.theModule.get());
+    context.functions[funcName] = function;
 
-    if( !this->isExternal ){
-        BasicBlock* basicBlock = BasicBlock::Create(context.llvmContext, "entry", function, nullptr);
+    BasicBlock* basicBlock = BasicBlock::Create(context.llvmContext, "entry", function, nullptr);
 
-        context.builder.SetInsertPoint(basicBlock);
-        context.pushBlock(basicBlock);
+    context.builder.SetInsertPoint(basicBlock);
+    context.pushBlock(basicBlock);
 
-        // declare function params
-        auto origin_arg = this->arguments->begin();
+    // declare function params
+    auto param = paramList->begin();
 
-        for(auto &ir_arg_it: function->args()){
-            ir_arg_it.setName((*origin_arg)->id->name);
-            Value* argAlloc;
-            if( (*origin_arg)->type->isArray )
-                argAlloc = context.builder.CreateAlloca(PointerType::get(context.typeSystem.getVarType((*origin_arg)->type->name), 0));
-            else
-                argAlloc = (*origin_arg)->codeGen(context);
+    for(auto &irArgIter: function->args()){
+        irArgIter.setName((*param).second->getDirectDeclarator()->getIdentifier());
+        Value* argAlloc;
+        int ptrLevel = 0;
+        if((*param).second->hasPointer())
+            ptrLevel = param.second->getPointer()->getStarNum();
+        string typeName = param.second->getDirectDeclarator()->getIdentifier();
 
-            context.builder.CreateStore(&ir_arg_it, argAlloc, false);
-            context.setSymbolValue((*origin_arg)->id->name, argAlloc);
-            context.setSymbolType((*origin_arg)->id->name, (*origin_arg)->type);
-            context.setFuncArg((*origin_arg)->id->name, true);
-            origin_arg++;
-        }
+        argAlloc = context.builder.CreateAlloca(contex.typeSystem.getType(param.first->getLabel(), ptrLevel));
 
-        this->block->codeGen(context);
-        if( context.getCurrentReturnValue() ){
-            context.builder.CreateRet(context.getCurrentReturnValue());
-        } else{
-            return LogErrorV("Function block return value not founded");
-        }
-        context.popBlock();
-
+        context.builder.CreateStore(&ir_arg_it, argAlloc, false);
+        context.setSymbolValue(typeName, argAlloc);
+        context.setSymbolType(typeName, contex.typeSystem.getType(param.first->getLabel(), ptrLevel));
+        param++;
     }
 
+    this->getCompound_statement()->codeGen(context);
+    if( context.getCurrentReturnValue() ){
+        context.builder.CreateRet(context.getCurrentReturnValue());
+    } else{
+        return LogErrorV("Function block return value not founded");
+    }
+    context.popBlock();
 
     return function;
-}
-llvm::Value* AstFunDef::codegen() {
-    std::vector<Type*> argTypes;
 
-    int type = this->getType();
-    if(type==2) {
-        this->getCompound_statement()->congen();
-        this->getDeclarationSpec();
-
-        AstDeclarator* declarator = this->getDeclarator()->getAstDirectDeclarator();
-        std::string func_name = declarator->getIdentifier();
-
-        std::vector<std::pair<int, void *> > func_list = declarator->getAstDirectDeclarator();
-        AstParamTypeList *paramList = nullptr;
-        for(auto p: func_list) {
-            if(p.first==5) {
-                paramList = (AstParamTypeList *)p.second;
-                break;
-            }
-        }
-
-        for(auto param: paramList->getAstParamList()->getParamList()) {
-            param->getType();
-            if(type==1) {
-                AstSpec *astSpec = (param->getAstSpecList()->getSpecList())[0];
-                astSpe
-                std::string *param_type = ->getLabel();
-
-                std::string param_name = ((AstDeclarator *)param->getPtr())->getAstDirectDeclarator()->getIdentifier();
-
-                argTypes.push_back()
-            }
-        }
-
-
-        if(paramList== nullptr) return LogErrorV("AstFunction Declaration error: not find param type list");
-
-
-
-        FuncBlock *fb = FuncBlock::CreateFuncBlock();
-        global_codegen.func_stack.push_back(fb);
-
-        node->getProgramHead()->Accept(this);
-        this->block_stack.push_back(new CodeBlock());
-        llvm::FunctionType *func_type = llvm::FunctionType::get(OurType::getLLVMType(this->context, OurType::INT_TYPE), false);
-        llvm::Function *main_func = llvm::Function::Create(func_type, llvm::Function::ExternalLinkage, "main", &*(this->module));
-        llvm::BasicBlock *entry = llvm::BasicBlock::Create(this->context, "entry", main_func);
-        this->builder.SetInsertPoint(entry);
-        node->getRoutine()->Accept(this);
-        this->builder.CreateRet(llvm::ConstantInt::get(llvm::Type::getInt32Ty(this->context), 0, true));
-
-    }
-
-    return nullptr;
 }
 
 //class AstFunDef;

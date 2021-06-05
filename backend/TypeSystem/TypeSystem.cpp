@@ -61,7 +61,7 @@ unique_ptr<Type> TypeSystem::getStructType(string name){
 }
 
 // =============Todo=======================
-Type* TypeSystem::getType(string specifiers){
+Type* TypeSystem::getType(string specifiers, int ptrLevel){
     if(getBuiltInType(specifiers)!= nullptr)
         return getBuiltInType(specifiers);
     if(getStructType(specifiers)!= nullptr){
@@ -74,3 +74,6 @@ Type* TypeSystem::getType(string specifiers){
 
     }
 }
+
+TypeSystem::TypeSystem(LLVMContext& llvmContext)
+            :llvmContext(llvmContext){}
