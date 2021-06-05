@@ -12,8 +12,6 @@
 #include "AstStmt.h"
 #include "AstStruct.h"
 #include "AstProg.h"
-#include <iostream>
-
 
 extern AstBase *astRoot;
 

@@ -4,87 +4,77 @@
 
 #include "AstExpr.h"
 
+//class AstExpr;
 AstExpr::AstExpr(std::string nodeType)
         :AstBase(nodeType){}
-
-AstExprList *AstPrimaryExpr::getExpr() const{
-    return astExpr;
 }
 
-AstPrimaryExpr::AstPrimaryExpr(std::string label, AstExprList* astExpr) 
-                :AstExpr("primary_expression")
+//class AstExpression;
+
+AstExpression::AstExpression(AstCondiExpr *astCondiExpr)
+: AstExpr("expression")
 {
-    this->astExpr = astExpr;
-    this->label = label;
-    // printf("%s\n", (this->label).c_str());
+    this->astCondiExpr = astCondiExpr;
+    this->isCondi = true;
 }
-std::string AstPrimaryExpr::getLabel() const{
-    return label;
-}
-
-/*
- * class AstPostfixExpr
- * */
-AstPostfixExpr::AstPostfixExpr(std::string op, AstPostfixExpr* postfix):AstExpr("postfix_expression")
+AstExpression::AstExpression(AstUnaryExpr *astUnaryExpr, AstAssignOp *astAssignOp, AstExpression *expression)
+: AstExpr("expression")
 {
-    this->op = op;
-    this->astPostfixExpr = postfix;;
-    this->ptr = nullptr;
-    this->id = "";
+    this->isCondi = false;
+    this->child_expr = expression;
+    this->astAssignOp = astAssignOp;
+    this->astUnaryExpr = astUnaryExpr
+}
+AstUnaryExpr * AstExpression::getUnaryExpr() {
+    return this->astUnaryExpr;
+}
+AstAssignOp * AstExpression::getAssignOp() {
+    return this->astAssignOp;
+}
+AstExpression * AstExpression::getExpression() {
+    return this->child_expr;
+}
+AstCondiExpr * AstExpression::getCondiExpr() {
+    return this->astCondiExpr;
+}
+bool AstExpression::isConditionalExpr() {
+    return isCondi;
 }
 
-AstPostfixExpr::AstPostfixExpr(std::string op, AstPostfixExpr* astPostfixExpr, std::string id):AstExpr("postfix_expression")
+// class AstCondiExpr;
+AstCondiExpr::AstCondiExpr(AstBinaryExpr *binaryExpr)
+: AstExpr("conditional_expression")
 {
-    this->op = op;
-    this->astPostfixExpr = astPostfixExpr;
-    this->ptr = nullptr;
-    this->id = id;
+    this->isCondition = false;
+    this->binaryExpr_back = binaryExpr;
 }
-
-AstPostfixExpr::AstPostfixExpr(std::string op, AstPostfixExpr* astPostfixExpr, void *ptr) :AstExpr("postfix_expression")
+AstCondiExpr::AstCondiExpr(AstBinaryExpr *binaryExpr1, AstExpression *astExpression, AstBinaryExpr *binaryExpr2)
+: AstExpr("conditional_expression")
 {
-    this->op = op;
-    this->astPostfixExpr = astPostfixExpr;
-    this->ptr = ptr;
-    this->id = "";
+    this->isCondition = true;
+    this->binaryExpr_front = binaryExpr1;
+    this->astExpression = astExpression;
+    this->binaryExpr_back = binaryExpr2;
+}
+AstBinaryExpr * AstCondiExpr::getAstBinaryExpr_back() {
+    return this->binaryExpr_back;
+}
+AstBinaryExpr * AstCondiExpr::getAstBinaryExpr_front() {
+    return this->binaryExpr_front;
+}
+AstExpression * AstCondiExpr::getAstExpression() {
+    return this->astExpression;
+}
+bool AstCondiExpr::isExpand() {
+    return isCondition;
 }
 
-std::string AstPostfixExpr::getOperator() {
-    return this->op;
-}
-void* AstPostfixExpr::getPtr() {
-    return this->ptr;
-}
-AstPostfixExpr* AstPostfixExpr::getAstPostfixExpr() {
-    return this->astPostfixExpr;
-}
-std::string AstPostfixExpr::getIdentifier() {
-    return this->id;
-}
-
-AstArgExprList::AstArgExprList() :AstExpr("argument_expression_list")
-{}
-
-void AstArgExprList::addAssignExpr(AstAssignExpr *astAssignExpr1) {
-    this->astArgExprList.push_back(astAssignExpr1);
-}
-
-std::vector<AstAssignExpr*>& AstArgExprList::getAstAssignExprList() {
-    return this->astArgExprList;
-}
-
-AstUnaryExpr::AstUnaryExpr(std::string op, void *ptr) :AstExpr("unary_expression")
+//class AstUnaryExpr;
+AstUnaryExpr::AstUnaryExpr(std::string op, void *ptr)
+: AstExpr("unary_expression")
 {
     this->op = op;
     this->ptr = ptr;
-    this->type = "";
-}
-
-AstUnaryExpr::AstUnaryExpr(std::string op, void *ptr, std::string type) :AstExpr("unary_expression")
-{
-    this->op = op;
-    this->ptr = ptr;
-    this->type = type;
 }
 std::string AstUnaryExpr::getOperator() {
     return this->op;
@@ -92,163 +82,139 @@ std::string AstUnaryExpr::getOperator() {
 void * AstUnaryExpr::getPtr() {
     return this->ptr;
 }
-std::string AstUnaryExpr::getType() {
-    return this->type;
-}
 
-AstCastExpr::AstCastExpr(AstUnaryExpr *astUnaryExpr) :AstExpr("cast_expression")
-{
-    this->astUnaryExpr = astUnaryExpr;
-    this->type = 0;
-}
-
-AstCastExpr::AstCastExpr(AstTypeName *astTypeName, AstCastExpr* astCastExpr) :AstExpr("cast_expression")
-{
-    this->astTypeName = astTypeName;
-    this->astCastExpr = astCastExpr;
-    this->type = 1;
-}
-
-int AstCastExpr::getType() {
-    return this->type;
-}
-AstCastExpr* AstCastExpr::getAstCastExpr() {
-    return this->astCastExpr;
-}
-AstTypeName* AstCastExpr::getAstTypeName() {
-    return this->astTypeName;
-}
-AstUnaryExpr* AstCastExpr::getAstUnaryExpr() {
-    return this->astUnaryExpr;
-}
-
-// AstCalcuExpr
-AstCalcuExpr::AstCalcuExpr() 
-            :AstExpr("calculate_expression")
-{
-    // use default
-    this->exprType = "calcu";
-}
-
-AstCalcuExpr::AstCalcuExpr(std::string type) 
-            :AstExpr("calculate_expression")
-{
-    this->exprType = type;
-}
-
-void AstCalcuExpr::addCalcuExpr(AstCalcuExpr *astCalcuExpr1) {
-    this->astCalcuExprList.push_back(astCalcuExpr1);
-}
-
-void AstCalcuExpr::addCastExpr(AstCastExpr* astCastExpr) {
-    this->astCastExpr.push_back(astCastExpr);
-}
-
-void AstCalcuExpr::addOperator(std::string op) {
-    this->opList.push_back(op);
-}
-
-std::string AstCalcuExpr::getExprtype() {
-    return this->exprType;
-}
-
-std::vector<AstCalcuExpr *>& AstCalcuExpr::getCalcuExprList() {
-    return this->astCalcuExprList;
-}
-
-std::vector<AstCastExpr *>& AstCalcuExpr::getCastExprList() {
-    return this->astCastExpr;
-}
-
-std::vector<std::string>& AstCalcuExpr::getOpList() {
-    return this->opList;
-}
-
-bool AstCalcuExpr::isCorrect() {
-    int exprSize = this->astCalcuExprList.size();
-    int opSize = this->opList.size();
-    if(exprSize-opSize==1) return true;
-    return false;
-}
-
-AstCondiExpr::AstCondiExpr(AstCalcuExpr *astCalcuExpr) 
-            :AstExpr("conditional_expression")
-{
-    this->astCalcuExpr = astCalcuExpr;
-    this->isLow = true;
-}
-
-AstCondiExpr::AstCondiExpr(AstCalcuExpr *astCalcuExpr, AstExprList *astExpr, AstCondiExpr *astCondiExpr) 
-            :AstExpr("conditional_expression")
-{
-    this->astCondiExpr = astCondiExpr;
-    this->astExpr = astExpr;
-    this->astCalcuExpr = astCalcuExpr;
-    this->isLow = false;
-}
-
-AstCalcuExpr* AstCondiExpr::getAstCalcuExpr() {
-    return this->astCalcuExpr;
-}
-AstExprList* AstCondiExpr::getAstExpr(){
-    return this->astExpr;
-}
-AstCondiExpr* AstCondiExpr::getAstCondiExpr(){
-    return this->astCondiExpr;
-}
-
-
-AstAssignExpr::AstAssignExpr(AstCondiExpr *astCondiExpr1) 
-            :AstExpr("assignment_expression")
-{
-    this->child_AssignExpr = nullptr;
-    this->astCondiExpr = astCondiExpr1;
-    this->astAssignOp = nullptr;
-    this->astUnaryExpr = nullptr;
-    this->isCondi = true;
-}
-
-AstAssignExpr::AstAssignExpr(AstUnaryExpr *astUnaryExpr1, AstAssignOp *astAssignOp1, AstAssignExpr *astAssignExpr1) 
-                :AstExpr("assignment_expression")
-{
-    this->child_AssignExpr = astAssignExpr1;
-    this->astCondiExpr = nullptr;
-    this->astAssignOp = astAssignOp1;
-    this->astUnaryExpr = astUnaryExpr1;
-    this->isCondi = false;
-}
-
-AstCondiExpr* AstAssignExpr::getAstCondiExpr() {
-    return this->astCondiExpr;
-}
-AstUnaryExpr* AstAssignExpr::getAstUnaryExpr() {
-    return this->astUnaryExpr;
-}
-AstAssignOp* AstAssignExpr::getAstAssignOp() {
-    return this->astAssignOp;
-}
-AstAssignExpr* AstAssignExpr::getAstAssignExpr() {
-    return this->child_AssignExpr;
-}
-
-
-AstAssignOp::AstAssignOp(std::string op) 
-            :AstExpr("assignment_operator")
+// class AstAssignOp;
+AstAssignOp::AstAssignOp(std::string op)
+: AstExpr("assignment_operator")
 {
     this->Operator = op;
 }
-
 std::string AstAssignOp::getOperator() {
     return this->Operator;
 }
 
-AstExprList::AstExprList() 
-            :AstExpr("expression"){}
-
-void AstExprList::addAssignExpr2(AstAssignExpr *assignExpr) {
-    this->AstAssignExprList.push_back(assignExpr);
+// class AstArgExprList;
+AstArgExprList::AstArgExprList()
+: AstExpr("argument_expression_list") {}
+void AstArgExprList::addExpression(AstExpression *astExpression) {
+    this->astArgExprList.push_back(astExpression);
+}
+std::vector<AstExpression *> & AstArgExprList::getAstAssignExprList() {
+    return this->astArgExprList;
 }
 
-std::vector<AstAssignExpr *> AstExprList::getAstAssignExprList() {
-    return this->AstAssignExprList;
+// class AstBinaryExpr;
+AstBinaryExpr::AstBinaryExpr(AstCastExpr *castExpr)
+: AstExpr("binary_expression")
+{
+    this->isCast = true;
+    this->astCastExpr = castExpr;
 }
+AstBinaryExpr::AstBinaryExpr(AstBinaryExpr *front, std::string op, AstBinaryExpr *back)
+: AstExpr("binary_expression")
+{
+    this->isCast = false;
+    this->front_expr = front;
+    this->back_expr = back;
+    this->op = op;
+}
+std::string AstBinaryExpr::getOperator() {
+    return this->op;
+}
+AstBinaryExpr * AstBinaryExpr::getBackBinaryExpr() {
+    return this->back_expr;
+}
+AstBinaryExpr * AstBinaryExpr::getFrontBinaryExpr() {
+    return this->front_expr;
+}
+AstCastExpr * AstBinaryExpr::getCastExpr() {
+    return this->astCastExpr;
+}
+bool AstBinaryExpr::isCastExpr() {
+    return this->isCast;
+}
+
+// class AstCastExpr
+AstCastExpr::AstCastExpr(AstUnaryExpr *astUnaryExpr)
+: AstExpr("cast_expression")
+{
+    this->isUnaryExpr = true;
+    this->astUnaryExpr = astUnaryExpr;
+}
+AstCastExpr::AstCastExpr(AstTypeName *astTypeName, AstCastExpr *astCastExpr)
+:AstExpr("cast_expression")
+{
+    this->isUnaryExpr = false;
+    this->astTypeName = astTypeName;
+    this->astCastExpr = astCastExpr;
+}
+AstCastExpr * AstCastExpr::getCastExpr() {
+    return this->astCastExpr;
+}
+AstUnaryExpr * AstCastExpr::getUnaryExpr() {
+    return this->astUnaryExpr;
+}
+AstTypeName * AstCastExpr::getAstTypeName() {
+    return this->astTypeName;
+}
+
+// class AstPrimaryExpr;
+AstPrimaryExpr::AstPrimaryExpr(int type, std::string label)
+: AstExpr("primary_expression")
+{
+    this->type = type;
+    this->label = label;
+}
+AstPrimaryExpr::AstPrimaryExpr(int type, AstExpression *astExpression)
+: AstExpr("primary_expression")
+{
+    this->type = type;
+    this->astExpression = astExpression;
+}
+AstExpression * AstPrimaryExpr::getExpression() {
+    return this->astExpression;
+}
+std::string AstPrimaryExpr::getLabel() {
+    return this->label;
+}
+
+// class AstPostfixExpr;
+AstPostfixExpr::AstPostfixExpr(AstPostfixExpr *astPostfixExpr, std::string op)
+: AstExpr("postfix_expression")
+{
+    this->child_postfix = astPostfixExpr;
+    this->op = op;
+    this->identifier = "";
+    this->ptr = nullptr;
+}
+
+AstPostfixExpr::AstPostfixExpr(AstPostfixExpr *astPostfixExpr, std::string op, void *ptr)
+: AstExpr("postfix_expression")
+{
+    this->child_postfix = astPostfixExpr;
+    this->op = op;
+    this->identifier = "";
+    this->ptr = ptr;
+}
+AstPostfixExpr::AstPostfixExpr(AstPostfixExpr *astPostfixExpr, std::string op, std::string id)
+: AstExpr("postfix_expression")
+{
+    this->child_postfix = astPostfixExpr;
+    this->op = op;
+    this->identifier = id;
+    this->ptr = nullptr;
+}
+std::string AstPostfixExpr::getOperator() {
+    return this->op;
+}
+void * AstPostfixExpr::getPtr() {
+    return ptr;
+}
+std::string AstPostfixExpr::getIdentifier() {
+    return this->identifier;
+}
+AstPostfixExpr * AstPostfixExpr::getAstPostfixExpr() {
+    return this->child_postfix;
+}
+
+

@@ -242,6 +242,11 @@ pointer
 	}
 	;
 
+function_definition
+	: type_specifier IDENTIFIER '(' parameter_list ')' compound_statement
+	| type_specifier pointer IDENTIFIER '(' parameter_list ')' compound_statement
+	;
+
 parameter_list 
     : {
 		$$ = new AstParamList(false);
@@ -258,93 +263,215 @@ parameter_list
 
 
 primary_expression
-	: IDENTIFIER
-	| CONSTANT
-	| STRING_LITERAL
-	| '(' expression ')'
+	: IDENTIFIER {
+        $$ = new AstPrimaryExpr(1, $1);
+	}
+	| CONSTANT {
+        $$ = new AstPrimaryExpr(2, $1);
+	}
+	| STRING_LITERAL {
+        $$ = new AstPrimaryExpr(3, $1);
+	}
+	| '(' expression ')' {
+        $$ = new AstPrimaryExpr(4, $2);
+	}
 	;
 
 postfix_expression
-	: primary_expression
-	| postfix_expression '[' expression ']'
-	| postfix_expression '(' ')'
-	| postfix_expression '(' argument_expression_list ')'
-	| postfix_expression '.' IDENTIFIER
-	| postfix_expression PTR_OP IDENTIFIER
-	| postfix_expression INC_OP
-	| postfix_expression DEC_OP
+	: primary_expression {
+	    $$ = new AstPostfixExpr("", $1);
+	}
+	| postfix_expression '[' expression ']' {
+	    $$ = new AstPostfixExpr($1, "[]", $3);
+	}
+	| postfix_expression '(' ')' {
+	    $$ = new AstPostfixExpr($1, "()");
+	}
+	| postfix_expression '(' argument_expression_list ')' {
+	    $$ = new AstPostfixExpr($1, "()", $3);
+	}
+	| postfix_expression '.' IDENTIFIER {
+	    $$ = new AstPostfixExpr($1, $2, $3);
+	}
+	| postfix_expression PTR_OP IDENTIFIER{
+	    $$ = new AstPostfixExpr($1, $2, $3);
+	}
+	| postfix_expression INC_OP {
+	    $$ = new AstPostfixExpr($1, $2);
+	}
+	| postfix_expression DEC_OP {
+	    $$ = new AstPostfixExpr($1, $2);
+	}
 	;
 
 argument_expression_list
-	: expression
-	| argument_expression_list ',' expression
+	: expression {
+	    $$ = new AstArgExprList();
+	    $$->addExpression($1);
+	}
+	| argument_expression_list ',' expression {
+	    $1->addExpression($3);
+	    $$ = $1;
+	}
 	;
 
 unary_expression
-	: postfix_expression
-	| INC_OP unary_expression
-	| DEC_OP unary_expression
-	| unary_operator cast_expression
+	: postfix_expression {
+	    $$ = new AstUnaryExpr("", $2);
+	}
+	| INC_OP unary_expression {
+	    $$ = new AstUnaryExpr($1, $2);
+	}
+	| DEC_OP unary_expression {
+	    $$ = new AstUnaryExpr($1, $2);
+	}
+	| unary_operator cast_expression {
+	    $$ = new AstUnaryExpr($1, $2);
+	}
 	;
 
 unary_operator
-	: '&'
-	| '*'
-	| '+'
-	| '-'
-	| '~'
-	| '!'
+	: '&' {
+	    $$ = $1;
+	}
+	| '*' {
+        $$ = $1;
+	}
+	| '+' {
+	    $$ = $1;
+	}
+	| '-' {
+	    $$ = $1;
+	}
+	| '~' {
+	    $$ = $1;
+	}
+	| '!' {
+	    $$ = $1;
+	}
 	;
 
 cast_expression
-	: unary_expression
-	| '(' type_name ')' cast_expression
+	: unary_expression {
+	    $$ = new AstCastExpr($1);
+	}
+	| '(' type_name ')' cast_expression {
+	    $$ = new AstCastExpr($2, $4);
+	}
 	;
 
 binary_expression
-    : cast_expression
-    | binary_expression OR_OP   binary_expression
-    | binary_expression AND_OP  binary_expression
-    | binary_expression '|'     binary_expression
-    | binary_expression '^'     binary_expression
-    | binary_expression '&'     binary_expression
-    | binary_expression EQ_OP   binary_expression
-    | binary_expression NE_OP   binary_expression
-    | binary_expression '<'     binary_expression
-    | binary_expression '>'     binary_expression
-    | binary_expression LE_OP   binary_expression
-    | binary_expression GE_OP   binary_expression  
-    | binary_expression LEFT_OP binary_expression
-    | binary_expression RIGHT_OP   binary_expression  
-    | binary_expression '+'     binary_expression
-    | binary_expression '-'     binary_expression 
-    | binary_expression '*'     binary_expression
-    | binary_expression '/'     binary_expression 
-    | binary_expression '%'     binary_expression 
+    : cast_expression {
+        $$ = new AstBinaryExpr($1);
+    }
+    | binary_expression OR_OP   binary_expression {
+        $$ = new AstBinaryExpr($1, $2, $3);
+    }
+    | binary_expression AND_OP  binary_expression {
+        $$ = new AstBinaryExpr($1, $2, $3);
+    }
+    | binary_expression '|'     binary_expression {
+        $$ = new AstBinaryExpr($1, $2, $3);
+    }
+    | binary_expression '^'     binary_expression {
+        $$ = new AstBinaryExpr($1, $2, $3);
+    }
+    | binary_expression '&'     binary_expression {
+        $$ = new AstBinaryExpr($1, $2, $3);
+    }
+    | binary_expression EQ_OP   binary_expression {
+        $$ = new AstBinaryExpr($1, $2, $3);
+    }
+    | binary_expression NE_OP   binary_expression {
+        $$ = new AstBinaryExpr($1, $2, $3);
+    }
+    | binary_expression '<'     binary_expression {
+        $$ = new AstBinaryExpr($1, $2, $3);
+    }
+    | binary_expression '>'     binary_expression {
+        $$ = new AstBinaryExpr($1, $2, $3);
+    }
+    | binary_expression LE_OP   binary_expression {
+        $$ = new AstBinaryExpr($1, $2, $3);
+    }
+    | binary_expression GE_OP   binary_expression {
+        $$ = new AstBinaryExpr($1, $2, $3);
+    }
+    | binary_expression LEFT_OP binary_expression {
+        $$ = new AstBinaryExpr($1, $2, $3);
+    }
+    | binary_expression RIGHT_OP   binary_expression {
+        $$ = new AstBinaryExpr($1, $2, $3);
+    }
+    | binary_expression '+'     binary_expression {
+        $$ = new AstBinaryExpr($1, $2, $3);
+    }
+    | binary_expression '-'     binary_expression {
+        $$ = new AstBinaryExpr($1, $2, $3);
+    }
+    | binary_expression '*'     binary_expression {
+        $$ = new AstBinaryExpr($1, $2, $3);
+    }
+    | binary_expression '/'     binary_expression {
+        $$ = new AstBinaryExpr($1, $2, $3);
+    }
+    | binary_expression '%'     binary_expression {
+        $$ = new AstBinaryExpr($1, $2, $3);
+    }
 
 
 conditional_expression
-	: binary_expression
-	| binary_expression '?' expression ':' binary_expression
+	: binary_expression {
+	    $$ = new AstCondiExpr($1);
+	}
+	| binary_expression '?' expression ':' binary_expression {
+	    $$ = new AstCondiExpr($1, $3, $5);
+	}
 	;
 
 expression
-	: conditional_expression
-	| unary_expression assignment_operator expression
+	: conditional_expression {
+	    $$ = new AstExpression($1);
+	}
+	| unary_expression assignment_operator expression {
+	    $$ = new AstExpression($1, $2, $3);
+	}
 	;
 
 assignment_operator
-	: '='
-	| MUL_ASSIGN
-	| DIV_ASSIGN
-	| MOD_ASSIGN
-	| ADD_ASSIGN
-	| SUB_ASSIGN
-	| LEFT_ASSIGN
-	| RIGHT_ASSIGN
-	| AND_ASSIGN
-	| XOR_ASSIGN
-	| OR_ASSIGN
+	: '=' {
+        $$ = new AstAssignOp($1);
+	}
+	| MUL_ASSIGN {
+	    $$ = new AstAssignOp($1);
+	}
+	| DIV_ASSIGN {
+	    $$ = new AstAssignOp($1);
+	}
+	| MOD_ASSIGN {
+	    $$ = new AstAssignOp($1);
+	}
+	| ADD_ASSIGN {
+	    $$ = new AstAssignOp($1);
+	}
+	| SUB_ASSIGN {
+	    $$ = new AstAssignOp($1);
+	}
+	| LEFT_ASSIGN {
+	    $$ = new AstAssignOp($1);
+	}
+	| RIGHT_ASSIGN {
+	    $$ = new AstAssignOp($1);
+	}
+	| AND_ASSIGN {
+	    $$ = new AstAssignOp($1);
+	}
+	| XOR_ASSIGN {
+	    $$ = new AstAssignOp($1);
+	}
+	| OR_ASSIGN {
+	    $$ = new AstAssignOp($1);
+	}
 	;
 
 constant_expression

@@ -8,104 +8,41 @@
 #include "AstBase.h"
 #include "AstType.h"
 #include "AstDecl.h"
+#include <string>
 
 class AstExpr;
+class AstExpression;
+class AstCondiExpr;
+class AstUnaryExpr;
+class AstAssignOp;
+class AstArgExprList;
+class AstBinaryExpr;
+class AstCastExpr;
 class AstPrimaryExpr;
 class AstPostfixExpr;
-class AstAssignExpr;
-class AstArgExprList;
-class AstUnaryExpr;
-class AstCastExpr;
-class AstCalcuExpr;
-class AstCondiExpr;
-class AstAssignOp;
-class AstExprList;
 
-
-class AstExpr : public AstBase {
+class AstExpr :public AstBase {
 public:
     AstExpr(std::string nodeType);
 };
 
-class AstPrimaryExpr : public AstExpr {
+class AstExpression : public AstExpr {
 public:
-    AstPrimaryExpr(std::string label, AstExprList* astExpr);
-    AstExprList* getExpr() const;
-    std::string getLabel() const;
+    AstExpression(AstCondiExpr* astCondiExpr);
+    AstExpression(AstUnaryExpr* astUnaryExpr, AstAssignOp* astAssignOp, AstExpression* astAssignExpr);
+
+    AstCondiExpr* getCondiExpr();
+    AstUnaryExpr* getUnaryExpr();
+    AstAssignOp* getAssignOp();
+    AstExpression* getExpression();
+    bool isConditionalExpr();
 private:
-    AstExprList* astExpr;
-    std::string label;
-};
-
-class AstPostfixExpr : public AstExpr {
-public:
-
-    AstPostfixExpr(std::string op, AstPostfixExpr* astPostfixExpr);
-    AstPostfixExpr(std::string op, AstPostfixExpr* astPostfixExpr, std::string id);
-    AstPostfixExpr(std::string op, AstPostfixExpr* astPostfixExpr, void *ptr);
-    // op <--> ptr
-    // ""       primary_expr
-    // "[]" --  exprlist
-    // "()" --  argument_expr_list 
-
-    std::string getOperator();
-    void *getPtr();
-    AstPostfixExpr *getAstPostfixExpr();
-    std::string getIdentifier();
-private:
-    void* ptr;
-    AstPostfixExpr* astPostfixExpr;
-    std::string id;
-    std::string op;
-};
-
-class AstArgExprList : public AstExpr {
-public:
-    AstArgExprList();
-    void addAssignExpr(AstAssignExpr* astAssignExpr);
-    std::vector<AstAssignExpr*>& getAstAssignExprList();
-private:
-    std::vector<AstAssignExpr*> astArgExprList;
-};
-
-class AstUnaryExpr : public AstExpr {
-public:
-    AstUnaryExpr(std::string op, void *ptr);
-    AstUnaryExpr(std::string op, void *ptr, std::string type);
-    std::string getOperator();
-    void * getPtr();
-    std::string getType();
-
-private:
-    std::string op;
-    void *ptr;
-    std::string type;
-    // op = ""  <--> AstPostfixExpr;
-    // INC <--> AstUnaryExpr;
-    // DEC <--> AstUnaryExpr
-    // op(&|*...) <---> AstCastExpr;
-    // SIZEOF <--> UnaryExpr | type_name;
-};
-
-
-class AstAssignExpr : public AstExpr {
-public:
-    AstAssignExpr(AstCondiExpr* astCondiExpr1);
-    AstAssignExpr(AstUnaryExpr* astUnaryExpr1, AstAssignOp* astAssignOp1, AstAssignExpr* astAssignExpr1);
     bool isCondi = true;
-
-    AstCondiExpr* getAstCondiExpr();
-    AstUnaryExpr* getAstUnaryExpr();
-    AstAssignOp* getAstAssignOp();
-    AstAssignExpr* getAstAssignExpr();
-
-private:
     AstCondiExpr* astCondiExpr;
     AstUnaryExpr* astUnaryExpr;
     AstAssignOp* astAssignOp;
-    AstAssignExpr* child_AssignExpr;
+    AstExpression* child_expr;
 };
-
 class AstAssignOp: public AstExpr {
 public:
     AstAssignOp(std::string op);
@@ -114,69 +51,114 @@ private:
     std::string Operator;
 };
 
+class AstUnaryExpr : public AstExpr {
+public:
+    AstUnaryExpr(std::string op, void *ptr);
+    std::string getOperator();
+    void * getPtr();
+
+private:
+    // op = ""  <--> AstPostfixExpr;
+    // INC <--> AstUnaryExpr;
+    // DEC <--> AstUnaryExpr
+    // op(&|*...) <---> AstCastExpr;
+    std::string op;
+    void *ptr;
+};
+
+class AstArgExprList : public AstExpr {
+public:
+    AstArgExprList();
+    void addExpression(AstExpression* astExpression);
+    std::vector<AstExpression*>& getAstAssignExprList();
+private:
+    std::vector<AstExpression*> astArgExprList;
+};
+
+class AstCondiExpr: public AstExpr {
+public:
+    AstCondiExpr(AstBinaryExpr* binaryExpr);
+    AstCondiExpr(AstBinaryExpr* binaryExpr1, AstExpression* astExpression, AstBinaryExpr* binaryExpr2);
+
+    AstBinaryExpr* getAstBinaryExpr_front();
+    AstExpression* getAstExpression();
+    AstBinaryExpr* getAstBinaryExpr_back();
+    bool isExpand();
+
+private:
+    bool isCondition;
+    AstBinaryExpr* binaryExpr_front;
+    AstBinaryExpr* binaryExpr_back;
+    AstExpression* astExpression;
+};
+
+class AstBinaryExpr : public AstExpr {
+public:
+    AstBinaryExpr(AstCastExpr *castExpr);
+    AstBinaryExpr(AstBinaryExpr *front, std::string op, AstBinaryExpr *back);
+    AstCastExpr *getCastExpr();
+    AstBinaryExpr* getFrontBinaryExpr();
+    AstBinaryExpr* getBackBinaryExpr();
+    std::string getOperator();
+    bool isCastExpr();
+
+private:
+    bool isCast;
+    std::string op;
+    AstBinaryExpr *front_expr;
+    AstBinaryExpr *back_expr;
+    AstCastExpr *astCastExpr;
+};
 
 class AstCastExpr: public AstExpr {
 public:
     AstCastExpr(AstUnaryExpr* astUnaryExpr);
     AstCastExpr(AstTypeName* astTypeName, AstCastExpr* astCastExpr);
-    int getType();
-    AstCastExpr* getAstCastExpr();
+
+    AstUnaryExpr* getUnaryExpr();
+    AstCastExpr* getCastExpr();
     AstTypeName* getAstTypeName();
-    AstUnaryExpr* getAstUnaryExpr();
-    // type 0 -- unaryExpr
-    // type 1 -- typename + astcastexpr
 private:
-    int type = 0;
-    AstTypeName* astTypeName;
+    bool isUnaryExpr;
     AstUnaryExpr* astUnaryExpr;
+    AstTypeName* astTypeName;
     AstCastExpr* astCastExpr;
 };
 
-class AstCalcuExpr: public AstExpr {
-public:
-    AstCalcuExpr();
-    AstCalcuExpr(std::string type);
-    void addCalcuExpr(AstCalcuExpr* astCalcuExpr1);
-    void addCastExpr(AstCastExpr* astCastExpr);
-    void addOperator(std::string op);
-    std::vector<AstCalcuExpr*>& getCalcuExprList();
-    std::vector<AstCastExpr *>& getCastExprList();
-    std::vector<std::string>& getOpList();
-    std::string getExprtype();
-    bool isCorrect();
-private:
-    std::vector<AstCalcuExpr*> astCalcuExprList;
-    std::vector<AstCastExpr *> astCastExpr;
-    std::vector<std::string> opList;
-    std::string exprType;
-    // cast -- use astCastExpr;
-    // else -- use astCalcuExprList
-};
 
-class AstCondiExpr: public AstExpr {
+class AstPrimaryExpr : public AstExpr {
 public:
-    AstCondiExpr(AstCalcuExpr* astCalcuExpr);
-    AstCondiExpr(AstCalcuExpr* astCalcuExpr, AstExprList* astExpr, AstCondiExpr* astCondiExpr);
-    bool isLow;
-    AstCalcuExpr* getAstCalcuExpr();
-    AstExprList* getAstExpr();
-    AstCondiExpr* getAstCondiExpr();
+    AstPrimaryExpr(int type, std::string label);
+    AstPrimaryExpr(int type, AstExpression *astExpression);
+    AstExpression* getExpression();
+    std::string getLabel();
 
 private:
-    AstCalcuExpr* astCalcuExpr = nullptr;
-    AstExprList* astExpr = nullptr;
-    AstCondiExpr* astCondiExpr = nullptr;
+    int type;
+    std::string label;
+    AstExpression* astExpression;
 };
 
-class AstExprList: public AstExpr {
+class AstPostfixExpr : public AstExpr {
 public:
-    AstExprList();
-    void addAssignExpr2(AstAssignExpr* assignExpr);
-    std::vector<AstAssignExpr *> getAstAssignExprList();
-private:
-    std::vector<AstAssignExpr *> AstAssignExprList;
-};
+    AstPostfixExpr(AstPostfixExpr* astPostfixExpr, std::string op);
+    AstPostfixExpr(AstPostfixExpr* astPostfixExpr, std::string op, std::string id);
+    AstPostfixExpr(AstPostfixExpr* astPostfixExpr, std::string op, void *ptr);
 
+    std::string getOperator();
+    void *getPtr();
+    AstPostfixExpr *getAstPostfixExpr();
+    std::string getIdentifier();
+private:
+    // op <--> ptr
+    // ""   --  primary_expr
+    // "[]" --  exprlist
+    // "()" --  argument_expr_list
+    void* ptr;
+    AstPostfixExpr* child_postfix;
+    std::string identifier;
+    std::string op;
+};
 
 
 #endif //OUR_C_COMPILER_ASTEXPR_H

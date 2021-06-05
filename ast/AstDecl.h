@@ -97,19 +97,19 @@ public:
 
 private:
     std::string identifier;
-    std::vector<std::pair<int, void *> > astDirectDeclarator;
+    std::vector<std::pair<int, void *> > DirectDeclarator_Pair;
 };
 
 class AstPointer: public AstBase{
 public:
     AstPointer();
     void addOneStar();
-    std::string getStarNum();
+    int getStarNum();
+    std::string getStars();
 
 private:
     int starNum;
 };
-
 
 class AstParamList: public AstDecl {
 public:
