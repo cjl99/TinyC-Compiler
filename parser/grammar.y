@@ -152,11 +152,6 @@ pointer
 	}
 	;
 
-function_definition
-	: type_specifier IDENTIFIER '(' parameter_list ')' compound_statement
-	| type_specifier pointer IDENTIFIER '(' parameter_list ')' compound_statement
-	;
-
 parameter_list 
     : {
 		$$ = new AstParamList(false);
@@ -382,10 +377,6 @@ assignment_operator
 	| OR_ASSIGN {
 	    $$ = new AstAssignOp($1);
 	}
-	;
-
-constant_expression
-	: conditional_expression
 	;
 
 struct_specifier
