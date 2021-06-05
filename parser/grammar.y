@@ -1,11 +1,67 @@
-%token IDENTIFIER CONSTANT STRING_LITERAL
-%token PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
-%token AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
-%token SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
-%token XOR_ASSIGN OR_ASSIGN TYPE_NAME
-%token CHAR SHORT INT LONG FLOAT DOUBLE VOID
-%token STRUCT
-%token IF ELSE WHILE DO FOR CONTINUE BREAK RETURN
+%{
+#define MAX_LITERAL_LEN 256
+
+#include "ast/Ast.h"
+#include "visualizeAST/astGenerator.h"
+using namespace std;
+#define DEBUG_PARSER
+
+extern int yylex();
+void yyerror(const char *str);
+extern FILE* yyin;
+
+void printExpr(string start){
+	std::cout<<start;
+	// for(int i = 0;i<strs.length();i++){
+	// 	std::cout<<" "<<strs[i];
+	// }
+	std::cout<<endl;
+}
+char *key;
+
+%}
+
+%union {
+	int token_type;
+	char* str;
+
+	AstFunDef* ast_func_def;
+	AstProgram* ast_program;
+	AstExternalExpr* ast_ext_expr;
+
+	AstDeclaration* ast_declaration;
+	AstSpec* ast_type_spec;
+	AstInitDeclList* ast_init_decl_list;
+	AstInitDeclarator* ast_init_declarator;
+	AstInitializer* ast_init;
+	AstInitList* ast_init_list;
+	AstDeclarator* ast_declarator;
+	AstDirectDeclarator* ast_direct_declarator;
+	AstPointer* ast_pointer;
+	AstParamList *ast_param_list;
+
+
+	AstStructSpec* ast_struct_spec;
+	AstStructDeclarationList *ast_struct_decl_list;
+	AstIdList *ast_id_list;
+	AstTypeName *ast_type_name;
+	AstStmtList* ast_stmt_list;
+	AstCompoundStmt* ast_compound_stmt;
+	AstStmt* ast_stmt;
+	AstExprStmt* ast_expr_stmt;
+	AstSelectStmt* ast_select_stmt;
+	AstIterStmt* ast_iter_stmt;
+	AstJmpStmt* ast_jmp_stmt;
+
+}
+%token<str> IDENTIFIER CONSTANT STRING_LITERAL
+%token<str> PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
+%token<str> AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
+%token<str> SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
+%token<str> XOR_ASSIGN OR_ASSIGN TYPE_NAME
+%token<str> CHAR SHORT INT LONG FLOAT DOUBLE VOID
+%token<str> STRUCT
+%token<str> IF ELSE WHILE DO FOR CONTINUE BREAK RETURN
 
 %left OR_OP
 %left AND_OP
@@ -21,6 +77,40 @@
 %type<ast_program> program
 %type<ast_ext_expr> external_declaration
 %type<ast_func_def> function_definition
+%type<ast_declaration> declaration
+%type<ast_type_spec> type_specifier
+%type<ast_init_decl_list> init_declarator_list
+%type<ast_init_declarator> init_declarator
+%type<ast_init> initializer
+%type<ast_init_list> initializer_list
+%type<ast_declarator> declarator
+%type<ast_direct_declarator> direct_declarator
+%type<ast_pointer> pointer
+%type<ast_param_list> parameter_list
+%type<> primary_expression
+%type<> postfix_expression
+%type<> argument_expression_list
+%type<> unary_expression
+%type<> unary_operator
+%type<> cast_expression
+%type<> binary_expression
+%type<> conditional_expression
+%type<> expression
+%type<> assignment_operator
+%type<> constant_expression
+%type<ast_struct_spec> struct_specifier
+%type<ast_struct_decl_list> struct_declaration_list
+%type<ast_id_list> identifier_list
+%type<ast_type_name> type_name
+%type<ast_stmt_list> statement_list
+%type<ast_compound_stmt> compound_statement
+%type<ast_stmt> statement
+%type<ast_expr_stmt> expression_statement
+%type<ast_select_stmt> selection_statement
+%type<ast_iter_stmt> iteration_statement
+%type<ast_jmp_stmt> jump_statement
+
+
 
 %start program
 
@@ -29,7 +119,7 @@ program
 	: external_declaration{
 	    $$ = new AstProgram();
 	    $$->addExternalExpr($1);
-	    astRoot = $$
+	    astRoot = $$;
 	}
 	| program external_declaration {
 	    $$ = $1;
@@ -331,11 +421,11 @@ compound_statement
 	;
 
 statement
-	: compound_statement{ $$ = $1; }
-	| expression_statement{ $$ = $1; }
-	| selection_statement{ $$ = $1; }
-	| iteration_statement{ $$ = $1; }
-	| jump_statement{ $$ = $1; }
+	: compound_statement{ $$ = new AstStmt($1); }
+	| expression_statement{ $$ = new AstStmt($1); }
+	| selection_statement{ $$ = new AstStmt($1); }
+	| iteration_statement{ $$ = new AstStmt($1); }
+	| jump_statement{ $$ = new AstStmt($1); }
 	;
 
 expression_statement
