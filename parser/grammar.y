@@ -40,6 +40,15 @@ char *key;
 	AstPointer* ast_pointer;
 	AstParamList *ast_param_list;
 
+	AstPrimaryExpr* ast_primary_expr;
+	AstPostfixExpr* ast_post_expr;
+	AstArgExprList* ast_arg_expr_list;
+	AstUnaryExpr* ast_unary_expr;
+	AstCastExpr* ast_cast_expr;
+	AstBinaryExpr* ast_binary_expr;
+	AstCondiExpr* ast_condi_expr;
+	AstExpression* ast_expr;
+	AstAssignOp* ast_assign_op;
 
 	AstStructSpec* ast_struct_spec;
 	AstStructDeclarationList *ast_struct_decl_list;
@@ -87,17 +96,16 @@ char *key;
 %type<ast_direct_declarator> direct_declarator
 %type<ast_pointer> pointer
 %type<ast_param_list> parameter_list
-%type<> primary_expression
-%type<> postfix_expression
-%type<> argument_expression_list
-%type<> unary_expression
-%type<> unary_operator
-%type<> cast_expression
-%type<> binary_expression
-%type<> conditional_expression
-%type<> expression
-%type<> assignment_operator
-%type<> constant_expression
+%type<ast_primary_expr> primary_expression
+%type<ast_post_expr> postfix_expression
+%type<ast_arg_expr_list> argument_expression_list
+%type<ast_unary_expr> unary_expression
+%type<str> unary_operator
+%type<ast_cast_expr> cast_expression
+%type<ast_binary_expr> binary_expression
+%type<ast_condi_expr> conditional_expression
+%type<ast_expr> expression
+%type<ast_assign_op> assignment_operator
 %type<ast_struct_spec> struct_specifier
 %type<ast_struct_decl_list> struct_declaration_list
 %type<ast_id_list> identifier_list
@@ -240,11 +248,6 @@ pointer
 		$2->addOneStar();
 		$$ = $2;
 	}
-	;
-
-function_definition
-	: type_specifier IDENTIFIER '(' parameter_list ')' compound_statement
-	| type_specifier pointer IDENTIFIER '(' parameter_list ')' compound_statement
 	;
 
 parameter_list 
@@ -472,10 +475,6 @@ assignment_operator
 	| OR_ASSIGN {
 	    $$ = new AstAssignOp($1);
 	}
-	;
-
-constant_expression
-	: conditional_expression
 	;
 
 struct_specifier
