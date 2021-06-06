@@ -1,7 +1,4 @@
-int func(){
-    return 1;
-}
 int main(){
-    int *a;
-    func();
+    int i;
+    for(i=1;i<=2;i++){}
 }

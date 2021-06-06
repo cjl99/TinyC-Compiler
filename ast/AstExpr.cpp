@@ -15,6 +15,9 @@ AstExpression::AstExpression(AstCondiExpr *astCondiExpr)
 : AstExpr("expression")
 {
     this->astCondiExpr = astCondiExpr;
+    this->child_expr = nullptr;
+    this->astAssignOp = nullptr;
+    this->astUnaryExpr = nullptr;
     this->isCondi = true;
 }
 AstExpression::AstExpression(AstUnaryExpr *astUnaryExpr, AstAssignOp *astAssignOp, AstExpression *expression)
@@ -24,6 +27,7 @@ AstExpression::AstExpression(AstUnaryExpr *astUnaryExpr, AstAssignOp *astAssignO
     this->child_expr = expression;
     this->astAssignOp = astAssignOp;
     this->astUnaryExpr = astUnaryExpr;
+    this->astCondiExpr = nullptr;
 }
 AstUnaryExpr * AstExpression::getUnaryExpr() {
     return this->astUnaryExpr;
@@ -38,6 +42,7 @@ AstCondiExpr * AstExpression::getCondiExpr() {
     return this->astCondiExpr;
 }
 bool AstExpression::isConditionalExpr() {
+    std::cout<<isCondi<<std::endl;
     return isCondi;
 }
 
@@ -46,6 +51,8 @@ AstCondiExpr::AstCondiExpr(AstBinaryExpr *binaryExpr)
 : AstExpr("conditional_expression")
 {
     this->isCondition = false;
+    this->binaryExpr_front = nullptr;
+    this->astExpression = nullptr;
     this->binaryExpr_back = binaryExpr;
 }
 AstCondiExpr::AstCondiExpr(AstBinaryExpr *binaryExpr1, AstExpression *astExpression, AstBinaryExpr *binaryExpr2)

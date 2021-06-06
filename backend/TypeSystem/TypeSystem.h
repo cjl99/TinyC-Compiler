@@ -12,22 +12,24 @@
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Module.h>
 
+using namespace llvm;
+
 using TypeNamePair = std::pair<std::string, std::string>;
 
 class TypeSystem;
-class StructType;
+class mtructType;
 
-class StructType{
+class mStructType{
 private:
     LLVMContext &llvmContext;
     TypeSystem &typeSystem;
-    string name;
-    std::vector<std::pair<std::string, string> > members;
+    std::string name;
+    std::vector<std::pair<std::string, std::string> > members;
 
 public:
-    StructType(LLVMContext& llvmContext, TypeSystem &typeSystem, string name);
-    void addStructMember(string memType, string memName);
-    llvm::StructType* createStructType();
+    mStructType(LLVMContext& llvmContext, TypeSystem &typeSystem, std::string name);
+    void addStructMember(std::string memType, std::string memName);
+    StructType* createStructType();
 
 };
 
@@ -48,22 +50,22 @@ public:
 
     // array types
     // https://stackoverflow.com/questions/35228471/how-to-create-llvm-array-type-using-allocainst
-    map<pair<Type*, uint64_t>, unique_ptr<Type> > arrMap;
+    std::map<std::pair<Type*, uint64_t>, Type* > arrMap;
     // pointer types
-    map<Type*, unique_ptr<Type> > ptrMap;
+    std::map<Type*, Type* > ptrMap;
     // user types
-    map<string, unique_ptr<StructType> > structMap;
+    std::map<std::string, StructType* > structMap;
 
     //=============================================================
-    Type* getBuiltInType(string specifier);
+    Type* getBuiltInType(std::string specifier);
 
-    unique_ptr<Type> getArrayType(Type* type, uint64_t size);
+    std::unique_ptr<Type> getArrayType(Type* type, uint64_t size);
 
-    unique_ptr<Type> getPtrType(Type* type);
+    std::unique_ptr<Type> getPtrType(Type* type);
 
-    unique_ptr<Type> getStructType(string name);
+    std::unique_ptr<Type> getStructType(std::string name);
 
-    Type* getType(string specifiers, int ptrLevel=0);
+    Type* getType(std::string specifiers, int ptrLevel=0);
 
 };
 

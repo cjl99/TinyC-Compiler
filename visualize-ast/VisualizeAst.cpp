@@ -199,10 +199,12 @@ int VisualizeAst::visualAstFunDef(AstFunDef* astFunDef) {
     addEdges(pid, cid2);
 
     int pointer_num = astFunDef->getReturnPtrLevel();
-    std::string pointer_str = "";
-    for(int i=0; i<pointer_num; ++i) pointer_str+="*";
-    int cid3 = addNodes("Pointer: " + pointer_str);
-    addEdges(pid, cid3);
+    if(pointer_num!=0) {
+        std::string pointer_str = "";
+        for (int i = 0; i < pointer_num; ++i) pointer_str += "*";
+        int cid3 = addNodes("Pointer: " + pointer_str);
+        addEdges(pid, cid3);
+    }
 
     AstParamList* astParamList = astFunDef->getAstParamList();
     int cid4 = visualAstParamList(astParamList);
@@ -248,16 +250,18 @@ int VisualizeAst::visualAstIdList(AstIdList *idlist) {
 
 int VisualizeAst::visualAstExpression(AstExpression* astExpression) {
     std::string nodetype = astExpression->getNodeType();
-    bool iscondi = astExpression->isConditionalExpr();
+    bool iscondi = astExpression->getCondiExpr() != nullptr;
     std::string condi = (iscondi) ? "conditional" : "assignment_expr";
     int pid = addNodes(nodetype + " " + condi);
     
-    if(iscondi==true) {
-        AstCondiExpr *astCondiExpr = astExpression->getCondiExpr();
-        int cid1 = visualAstCondiExpr(astCondiExpr);
+    if(astExpression->getCondiExpr()) {
+        std::cout << astExpression->getCondiExpr() << std::endl;
+        int cid1 = visualAstCondiExpr(astExpression->getCondiExpr());
         addEdges(pid, cid1);
     }
     else {
+        std::cout << " here " << std::endl;
+
         int cid1 = visualAstUnaryExpr(astExpression->getUnaryExpr());
         addEdges(pid, cid1);
 
@@ -270,23 +274,25 @@ int VisualizeAst::visualAstExpression(AstExpression* astExpression) {
     return pid;
 }
 
-int VisualizeAst::visualAstCondiExpr(AstCondiExpr *astCondiExpr) {
-    std::string type = astCondiExpr->getNodeType();
-    int pid = addNodes(type);
+int VisualizeAst::visualAstCondiExpr(AstCondiExpr *condi_expr) {
 
-    if(astCondiExpr->getAstExpression()==nullptr) {
-        AstBinaryExpr* back = astCondiExpr->getAstBinaryExpr_back();
+    std::string nodetype = "conditional_expression";
+    int pid = addNodes(nodetype);
+
+    if(condi_expr->getAstExpression()==nullptr) {
+        AstBinaryExpr* back = condi_expr->getAstBinaryExpr_back();
+        std::cout << condi_expr << std::endl;
         int cid1 = visualAstBinaryExpr(back);
         addEdges(pid, cid1);
     }
     else {
-        int cid1 = visualAstBinaryExpr(astCondiExpr->getAstBinaryExpr_front());
+        int cid1 = visualAstBinaryExpr(condi_expr->getAstBinaryExpr_front());
         addEdges(pid, cid1);
 
-        int cid2 = visualAstExpression(astCondiExpr->getAstExpression());
+        int cid2 = visualAstExpression(condi_expr->getAstExpression());
         addEdges(pid, cid2);
 
-        int cid3 = visualAstBinaryExpr(astCondiExpr->getAstBinaryExpr_back());
+        int cid3 = visualAstBinaryExpr(condi_expr->getAstBinaryExpr_back());
         addEdges(pid, cid3);
     }
 
@@ -412,6 +418,7 @@ int VisualizeAst::visualAstPrimaryExpr(AstPrimaryExpr *primary_expr) {
 
     int type = primary_expr->getType();
     std::string label = primary_expr->getLabel();
+    if(label[0]=='\"') label = label.substr(1,label.length()-2);
     if(type==1) {
         addEdges(pid, addNodes("INDENTIFIER: " + label));
     } else if(type==2) {
@@ -517,7 +524,7 @@ int VisualizeAst::visualAstStmt(AstStmt* astStmt) {
     if(tp==1) {
         cid = visualAstCompoundStmt((AstCompoundStmt *)astBase);
     } else if(tp==2) { 
-        cid = visualAstExpression((AstExpression *)astBase);
+        cid = visualAstExprStmt((AstExprStmt *)astBase);
     } else if(tp==3) {
         cid = visualAstSelectStmt((AstSelectStmt *)astBase);
     } else if(tp==4) {
@@ -561,13 +568,13 @@ int VisualizeAst::visualAstIterStmt(AstIterStmt *astIterStmt) {
     AstExpression *JudgeExpr = astIterStmt->getJudgeExpr();
     AstExpression *UpdateExpr = astIterStmt->getUpdateExpr();
 
-    if(tp==1) { // "whi;e"
+    if(tp==1) { // "while"
         int cid1 = visualAstExpression(JudgeExpr);
         addEdges(pid, cid1);
         int cid2 = visualAstStmt(block);
         addEdges(pid, cid2);
     }
-    else if(tp==2) { // for
+    else if(tp==2){ // for
         if(InitialExpr) {
             int cid1 = visualAstExpression(InitialExpr);
             addEdges(pid, cid1);
@@ -602,6 +609,17 @@ int VisualizeAst::visualAstJmpStmt(AstJmpStmt* astJmpStmt) {
         addEdges(pid, cid);
     }
     
+    return pid;
+}
+
+int VisualizeAst::visualAstExprStmt(AstExprStmt* exprStmt) {
+    std::string nodetype = exprStmt->getNodeType();
+    int pid = addNodes(nodetype);
+
+    AstExpression *expr = exprStmt->getExpr();
+    int cid = visualAstExpression(expr);
+    addEdges(pid, cid);
+
     return pid;
 }
 

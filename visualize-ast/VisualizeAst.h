@@ -30,7 +30,7 @@ public:
     int visualAstDeclarationList(AstDeclarationList* astDeclarationList);
 
     int visualAstExpression(AstExpression *astExpression);
-    int visualAstCondiExpr(AstCondiExpr *astCondiExpr);
+    int visualAstCondiExpr(AstCondiExpr *condi_expr);
     int visualAssignOp(AstAssignOp* assign_op);
     int visualAstUnaryExpr(AstUnaryExpr* astUnaryExpr);
     int visualAstBinaryExpr(AstBinaryExpr* binary_expr);
@@ -50,6 +50,7 @@ public:
     int visualAstSelectStmt(AstSelectStmt* astSelectStmt);
     int visualAstIterStmt(AstIterStmt *astIterStmt);
     int visualAstJmpStmt(AstJmpStmt* astJmpStmt);
+    int visualAstExprStmt(AstExprStmt* exprStmt);
 
 
 private:

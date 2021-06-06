@@ -2,7 +2,7 @@
 #define MAX_LITERAL_LEN 256
 
 #include "ast/Ast.h"
-//#include "visualizeAST/astGenerator.h"
+#include "visualize-ast/VisualizeAst.h"
 using namespace std;
 #define DEBUG_PARSER
 
@@ -438,10 +438,12 @@ conditional_expression
 
 expression
 	: conditional_expression {
+	    printf("conditional_expression\n");
 	    $$ = new AstExpression($1);
 	}
 	| unary_expression assignment_operator expression {
 	    $$ = new AstExpression($1, $2, $3);
+	    printf("unary_expression\n");
 	}
 	;
 
@@ -616,9 +618,9 @@ int main(int argc,char* argv[]){
 	printf("parse\n");
 	yyparse();
 	fclose(yyin);
-//	AstGraph *graph = new AstGraph("AstGraph.dot");
-//	graph->generateGraph();
-//	graph->saveGraph();
+	VisualizeAst *graph = new VisualizeAst("AstGraph.dot");
+	graph->generateGraph();
+	graph->saveGraph();
 	return 0;
 }
 #endif

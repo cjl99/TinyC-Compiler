@@ -35,7 +35,7 @@ public:
 
     AstStmtList* getAstStmtList() const;
 
-    llvm::Value* codeGen(CodeGen &context);
+    //llvm::Value* codeGen(CodeGen &context);
 };
 
 class AstStmt: public AstBase{
@@ -68,7 +68,7 @@ public:
 
     AstExpression* getExpr();
 
-    llvm::Value* codeGen(CodeGenContext &context);
+    //llvm::Value* codeGen(CodeGen &context);
 };
 
 class AstSelectStmt: public AstNonLabelStmt {
@@ -86,7 +86,7 @@ public:
 
     AstStmt *getElseClause() const;
 
-    llvm::Value* codeGen(CodeGenContext &context);
+    // llvm::Value* codeGen(CodeGen &context);
 
 };
 
@@ -106,7 +106,7 @@ public:
     AstStmt *getBlock() const;
     int getType();
 
-    llvm::Value* codeGen(CodeGenContext &context);
+    // llvm::Value* codeGen(CodeGen &context);
 
 };
 
@@ -120,7 +120,7 @@ public:
     string getType() const;
     AstExpression *getExpr() const;
 
-    llvm::Value* codeGen(CodeGenContext &context);
+    // llvm::Value* codeGen(CodeGen &context);
 };
 
 #endif

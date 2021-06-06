@@ -15,43 +15,12 @@
 #include <iostream>
 
 class CodeBlock;
-class GlobalVarBlock;
 class CodeGen;
-
-class CodeGen {
-private:
-    // main's value included in here
-    static std::vector<CodeBlock *> code_stack;
-
-public:
-    static LLVMContext llvmContext;
-    static std::unique_ptr<Module> TheModule;
-    static std::unique_ptr<IRBuilder<>> Builder;
-
-    GlobalVarBlock *globalVars;
-    std::map<std::string, llvm::Function*> functions;
-    TypeSystem typeSystem;
-
-    CodeGen(): Builder(llvmContext), typeSystem(llvmContext){
-        theModule = unique_ptr<Module>(new Module("main", this->llvmContext));
-        globalVars = new GlobalVarBlock();
-    }
-
-    llvm::Value* getSymbolValue(string name) const();
-    llvm::Type* getSymbolType(string name) const();
-    void setSymbolValue(string name, Value* value)();
-    void setSymbolType(string name, Type* type)();
-    CodeBlock* currentBlock() const();
-    void pushBlock(CodeBlock * block);
-    void popBlock();
-
-};
-
 
 class CodeBlock {
 private:
-    std::map<std::string, llvm::Value*> named_values;
-    std::map<std::string, llvm:Type*> named_types;
+    std::map<std::string, Value*> named_values;
+    std::map<std::string, Type*> named_types;
     Value * returnValue = nullptr;
     llvm::BasicBlock *block;
     std::vector<llvm::BasicBlock *> loopBreaks;
@@ -61,15 +30,42 @@ public:
     }
 };
 
-class GlobalVarBlock : public CodeBlock {
+class CodeGen {
+private:
+    // main's value included in here
+    std::vector<CodeBlock *> code_stack;
+
+public:
+    LLVMContext llvmContext;
+    std::unique_ptr<Module> theModule;
+    IRBuilder<> Builder;
+
+    CodeBlock *globalVars;
+    std::map<std::string, llvm::Function*> functions;
+    TypeSystem typeSystem;
+
+    CodeGen(): Builder(llvmContext), typeSystem(llvmContext){
+        theModule = std::unique_ptr<Module>(new Module("main", this->llvmContext));
+        BasicBlock* basicBlock = BasicBlock::Create(llvmContext);
+        globalVars = new CodeBlock(basicBlock);
+    }
+
+    Value* getSymbolValue(std::string name) const;
+    Type* getSymbolType(std::string name) const;
+    void setSymbolValue(std::string name, Value* value);
+    void setSymbolType(std::string name, Type* type);
+    CodeBlock* currentBlock() const;
+    void pushBlock(CodeBlock * block);
+    void popBlock();
 
 };
+
+void LogError(const char *Str) {
+    std::cout << Str << std::endl;
+}
 
 Value *LogErrorV(const char *Str) {
     LogError(Str);
     return nullptr;
 }
 
-void LogError(const char *Str) {
-    std::errc << Str << std::endl;
-}

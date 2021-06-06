@@ -68,7 +68,7 @@ AstStmt *AstSelectStmt::getElseClause() const{
 
 // ===============================================
 AstIterStmt::AstIterStmt(int type, AstExpression *initialExpr, AstExpression *judgeExpr, AstExpression *updateExpr, AstStmt *block)
-            :AstNonLabelStmt("iteration_statement"),  block(block), initialExpr(initialExpr), judgeExpr(judgeExpr), updateExpr(updateExpr){}
+            :AstNonLabelStmt("iteration_statement"),  type(type), block(block), initialExpr(initialExpr), judgeExpr(judgeExpr), updateExpr(updateExpr){}
 
 AstExpression *AstIterStmt::getInitialExpr() const{
     return initialExpr;

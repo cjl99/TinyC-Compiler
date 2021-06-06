@@ -13,8 +13,8 @@ class AstDeclaration;
 class AstDeclarationList;
 class AstInitDeclList;
 class AstInitDeclarator;
-class AstInitializer;
 class AstInitList;
+class AstInitializer;
 class AstDeclarator;
 class AstDirectDeclarator;
 class AstPointer;
@@ -32,7 +32,7 @@ public:
     AstDeclaration(AstSpec* astSpec, AstInitDeclList* astInitDeclList);
     AstSpec* getTypeSpec(); 
     AstInitDeclList* getInitDeclList();
-    llvm::Value* codeGen(CodeGen &context);
+    // Value* codeGen(CodeGen &context);
 private:
     AstSpec* astTypeSpec;
     AstInitDeclList* astInitDeclList;
@@ -43,7 +43,7 @@ public:
     AstDeclarationList();
     void addDeclaration(AstDeclaration* declaration);
     std::vector<AstDeclaration*>& getDeclarationList();
-    llvm::Value* codeGen(CodeGen &context)
+    // llvm::Value* codeGen(CodeGen &context);
 private:
     std::vector<AstDeclaration*> declarationList;
 };
@@ -67,18 +67,6 @@ public:
 private:
     AstDeclarator *astDeclarator;
     AstInitializer *astInitializer;
-};
-
-class AstInitializer: public AstDecl {
-public:
-    AstInitializer(AstExpression *astExpression, AstInitList *astInitList);
-    AstExpression *getExpression();
-    AstInitList *getInitList();
-    bool isExpression();
-
-private:
-    AstExpression *astExpression;
-    AstInitList *astInitList;
 };
 
 class AstInitList: public AstDecl {

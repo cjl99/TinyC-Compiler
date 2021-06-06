@@ -6,8 +6,8 @@
 #define OUR_C_COMPILER_ASTEXPR_H
 
 #include "AstBase.h"
-#include "AstType.h"
 #include "AstDecl.h"
+#include "AstType.h"
 #include <string>
 
 class AstExpr;
@@ -20,6 +20,7 @@ class AstBinaryExpr;
 class AstCastExpr;
 class AstPrimaryExpr;
 class AstPostfixExpr;
+class AstInitializer;
 
 class AstExpr :public AstBase {
 public:
@@ -29,16 +30,16 @@ public:
 class AstExpression : public AstExpr {
 public:
     AstExpression(AstCondiExpr* astCondiExpr);
-    AstExpression(AstUnaryExpr* astUnaryExpr, AstAssignOp* astAssignOp, AstExpression* astAssignExpr);
+    AstExpression(AstUnaryExpr* astUnaryExpr, AstAssignOp* astAssignOp, AstExpression* expression);
 
     AstCondiExpr* getCondiExpr();
     AstUnaryExpr* getUnaryExpr();
     AstAssignOp* getAssignOp();
     AstExpression* getExpression();
     bool isConditionalExpr();
-    llvm::Value* codeGen(CodeGen &context);
+//    llvm::Value* codeGen(CodeGen &context);
 private:
-    bool isCondi = true;
+    bool isCondi;
     AstCondiExpr* astCondiExpr;
     AstUnaryExpr* astUnaryExpr;
     AstAssignOp* astAssignOp;
@@ -176,6 +177,8 @@ private:
     AstExpression *astExpression;
     AstInitList *astInitList;
 };
+
+
 
 
 #endif //OUR_C_COMPILER_ASTEXPR_H
