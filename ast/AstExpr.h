@@ -25,6 +25,7 @@ class AstInitializer;
 class AstExpr :public AstBase {
 public:
     AstExpr(std::string nodeType);
+    virtual llvm::Value* codegen(CodeGen &context) override;
 };
 
 class AstExpression : public AstExpr {
@@ -37,7 +38,7 @@ public:
     AstAssignOp* getAssignOp();
     AstExpression* getExpression();
     bool isConditionalExpr();
-//    llvm::Value* codeGen(CodeGen &context);
+    llvm::Value* codegen(CodeGen &context);
 private:
     bool isCondi;
     AstCondiExpr* astCondiExpr;

@@ -5,6 +5,9 @@
 #include "AstDecl.h"
 
 AstDecl::AstDecl(std::string nodeType) :AstBase(nodeType){}
+llvm::Value* AstDecl::codegen(CodeGen &context) {
+    return nullptr;
+}
 
 AstDeclaration::AstDeclaration(AstSpec* astSpec, AstInitDeclList* astInitDeclList) :AstDecl("declaration")
 {
@@ -100,7 +103,7 @@ void AstDirectDeclarator::addToDirectDecl(int type, void *ptr) {
 
 // AstPointer
 AstPointer::AstPointer()
-: AstBase("pointer")
+: AstDecl("pointer")
 {
     this->starNum = 1;
 }
@@ -135,7 +138,7 @@ std::vector<std::pair<AstSpec *, AstDeclarator *>> AstParamList::getParamList() 
 }
 
 //==============================================
-AstTypeName::AstTypeName(AstSpec *spec, AstPointer *pointer){
+AstTypeName::AstTypeName(AstSpec *spec, AstPointer *pointer) : AstDecl("type_name"){
     type = spec->getLabel();
     if(pointer!= nullptr)
         ptrLevel = pointer->getStarNum();
@@ -151,7 +154,7 @@ int AstTypeName::getPtrLevel(){
 }
 
 //==============================================
-AstIdList::AstIdList(){}
+AstIdList::AstIdList(): AstDecl("identifier_list"){}
 
 void AstIdList::addId(std::string id){
     identifiers.push_back(id);

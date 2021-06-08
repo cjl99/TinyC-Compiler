@@ -24,6 +24,8 @@ class AstTypeName;
 
 class AstDecl: public AstBase {
 public:
+    virtual llvm::Value* codegen(CodeGen &context) override;
+
     AstDecl(std::string nodeType);
 };
 
@@ -32,7 +34,7 @@ public:
     AstDeclaration(AstSpec* astSpec, AstInitDeclList* astInitDeclList);
     AstSpec* getTypeSpec(); 
     AstInitDeclList* getInitDeclList();
-    // Value* codeGen(CodeGen &context);
+    virtual llvm::Value* codegen(CodeGen &context) override;
 private:
     AstSpec* astTypeSpec;
     AstInitDeclList* astInitDeclList;
@@ -43,7 +45,7 @@ public:
     AstDeclarationList();
     void addDeclaration(AstDeclaration* declaration);
     std::vector<AstDeclaration*>& getDeclarationList();
-    // llvm::Value* codeGen(CodeGen &context);
+    // virtual llvm::Value* codegen(CodeGen &context) override;
 private:
     std::vector<AstDeclaration*> declarationList;
 };
@@ -53,7 +55,6 @@ public:
     AstInitDeclList();
     void addInitDeclarator(AstInitDeclarator* astInitDeclarator);
     std::vector<AstInitDeclarator *>& getInitDeclList();
-
 private:
     std::vector<AstInitDeclarator *> astInitDeclList;
 };
@@ -64,6 +65,7 @@ public:
     AstDeclarator *getDeclarator();
     AstInitializer *getInitializer();
     bool hasEqual();
+
 private:
     AstDeclarator *astDeclarator;
     AstInitializer *astInitializer;
@@ -103,7 +105,7 @@ private:
     std::vector<std::pair<int, void *> > DirectDeclarator_Pair;
 };
 
-class AstPointer: public AstBase{
+class AstPointer: public AstDecl{
 public:
     AstPointer();
     void addOneStar();
@@ -120,33 +122,28 @@ public:
     void addParam(AstSpec* astSpec, AstDeclarator *astDeclarator);
     std::vector<std::pair<AstSpec*, AstDeclarator*> > getParamList();
     bool isEmpty();
-
 private:
     bool isempty;
     std::vector<std::pair<AstSpec*, AstDeclarator*>> astParamList;
 };
 
-class AstTypeName: public AstBase{
+class AstTypeName: public AstDecl{
+public:
+    AstTypeName(AstSpec *spec, AstPointer *pointer);
+    std::string getType();
+    int getPtrLevel();
 private:
     std::string type;
     int ptrLevel;
-public:
-    AstTypeName(AstSpec *spec, AstPointer *pointer);
-
-    std::string getType();
-
-    int getPtrLevel();
 };
 
-class AstIdList: public AstBase{
-private:
-    std::vector<std::string> identifiers;
+class AstIdList: public AstDecl{
 public:
     AstIdList();
-
     void addId(std::string id);
-
     std::vector<std::string> getIdentifiers();
+private:
+    std::vector<std::string> identifiers;
 };
 
 #endif //OUR_C_COMPILER_ASTDECL_H

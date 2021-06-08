@@ -21,6 +21,7 @@ class AstJmpStmt;
 class AstNonLabelStmt: public AstBase{
 public:
     AstNonLabelStmt(std::string nodeType);
+    virtual llvm::Value* codegen(CodeGen &context) override;
 };
 
 class AstCompoundStmt: public AstNonLabelStmt{
@@ -35,10 +36,10 @@ public:
 
     AstStmtList* getAstStmtList() const;
 
-    //llvm::Value* codeGen(CodeGen &context);
+    virtual llvm::Value* codegen(CodeGen &context) override;
 };
 
-class AstStmt: public AstBase{
+class AstStmt: public AstNonLabelStmt{
 private:
     AstBase *stmt;
     int type;
@@ -57,7 +58,7 @@ public:
 
     void addStmt(AstStmt *);
 
-    const std::vector<AstStmt *> &getStmtList() const;
+    std::vector<AstStmt *>& getStmtList();
 };
 
 class AstExprStmt: public AstNonLabelStmt{
@@ -68,7 +69,7 @@ public:
 
     AstExpression* getExpr();
 
-    //llvm::Value* codeGen(CodeGen &context);
+    virtual llvm::Value* codegen(CodeGen &context) override;
 };
 
 class AstSelectStmt: public AstNonLabelStmt {
@@ -86,7 +87,7 @@ public:
 
     AstStmt *getElseClause() const;
 
-    // llvm::Value* codeGen(CodeGen &context);
+    virtual llvm::Value* codegen(CodeGen &context) override;
 
 };
 
@@ -106,7 +107,7 @@ public:
     AstStmt *getBlock() const;
     int getType();
 
-    // llvm::Value* codeGen(CodeGen &context);
+    virtual llvm::Value* codegen(CodeGen &context) override;
 
 };
 
@@ -120,7 +121,7 @@ public:
     string getType() const;
     AstExpression *getExpr() const;
 
-    // llvm::Value* codeGen(CodeGen &context);
+    virtual llvm::Value* codegen(CodeGen &context) override;
 };
 
 #endif

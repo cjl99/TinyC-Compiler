@@ -1,30 +1,38 @@
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Verifier.h"
-#include "../TypeSystem/TypeSystem.h"
 #include <map>
 #include <vector>
 #include <tuple>
 #include <iostream>
+#include <string>
+
+#include <llvm/IR/Value.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/BasicBlock.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Type.h>
+#include <llvm/IR/Verifier.h>
+#include <llvm/IR/LegacyPassManager.h>
+#include <llvm/IR/IRPrintingPasses.h>
+#include <llvm/Support/raw_ostream.h>
+
+#include "../TypeSystem/TypeSystem.h"
+#include "../../ast/AstProg.h"
+
+//using legacy::PassManager;
 
 class CodeBlock;
 class CodeGen;
 
+// { } or
 class CodeBlock {
-private:
+public:
     std::map<std::string, Value*> named_values;
     std::map<std::string, Type*> named_types;
     Value * returnValue = nullptr;
     llvm::BasicBlock *block;
     std::vector<llvm::BasicBlock *> loopBreaks;
-public:
+
     CodeBlock(llvm::BasicBlock *block){
         this->block = block;
     }
@@ -38,34 +46,29 @@ private:
 public:
     LLVMContext llvmContext;
     std::unique_ptr<Module> theModule;
-    IRBuilder<> Builder;
+    IRBuilder<> builder;
 
-    CodeBlock *globalVars;
-    std::map<std::string, llvm::Function*> functions;
     TypeSystem typeSystem;
 
-    CodeGen(): Builder(llvmContext), typeSystem(llvmContext){
+    CodeGen(): builder(llvmContext), typeSystem(llvmContext){
         theModule = std::unique_ptr<Module>(new Module("main", this->llvmContext));
-        BasicBlock* basicBlock = BasicBlock::Create(llvmContext);
-        globalVars = new CodeBlock(basicBlock);
     }
+
 
     Value* getSymbolValue(std::string name) const;
     Type* getSymbolType(std::string name) const;
     void setSymbolValue(std::string name, Value* value);
     void setSymbolType(std::string name, Type* type);
     CodeBlock* currentBlock() const;
-    void pushBlock(CodeBlock * block);
+    void pushBlock(llvm::BasicBlock * block);
     void popBlock();
 
+    void generateCode(AstProgram *root);
+    Value *getCurrentReturnValue();
+    void setCurrentReturnValue(Value *retValue);
 };
+void LogError(const char *str);
+Value* LogErrorV(const char* str);
+Value* LogErrorV(string str);
 
-void LogError(const char *Str) {
-    std::cout << Str << std::endl;
-}
-
-Value *LogErrorV(const char *Str) {
-    LogError(Str);
-    return nullptr;
-}
 

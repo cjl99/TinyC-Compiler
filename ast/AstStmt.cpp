@@ -3,10 +3,13 @@
 AstNonLabelStmt::AstNonLabelStmt(std::string nodeType)
                 :AstBase(nodeType){}
 
+llvm::Value* AstNonLabelStmt::codegen(CodeGen &context) {
+    return nullptr;
+}
 // ===============================================
 
 AstStmt:: AstStmt(int type, AstBase* stmt)
-        : AstBase("statement"), type(type), stmt(stmt){}
+        : AstNonLabelStmt("statement"), type(type), stmt(stmt){}
 
 AstBase * AstStmt::getStmt() const{
     return stmt;
@@ -24,7 +27,7 @@ void AstStmtList:: addStmt(AstStmt * stmt){
     stmt_list.push_back(stmt);
 }
 
-const std::vector<AstStmt *> & AstStmtList::getStmtList() const{
+std::vector<AstStmt *> & AstStmtList::getStmtList(){
     return stmt_list;
 }
 // ===============================================
@@ -35,11 +38,11 @@ const std::vector<AstStmt *> & AstStmtList::getStmtList() const{
                 }
 
 AstDeclarationList* AstCompoundStmt::getAstDeclarationList() const{
-    return astDeclarationList;
+    return this->astDeclarationList;
 }
 
 AstStmtList* AstCompoundStmt::getAstStmtList() const{
-    return astStmtList;
+    return this->astStmtList;
 }
 
 // ===============================================

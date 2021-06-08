@@ -14,8 +14,12 @@ private:
 
 public:
     AstSpec(std::string label);
-
     std::string getLabel() const;
+
+    virtual llvm::Value *codegen(CodeGen& context) override {
+        // TODO
+            return nullptr;
+    }
 };
 
 

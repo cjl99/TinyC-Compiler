@@ -1,10 +1,5 @@
-//
-// Created by 郑小叶 on 2021/6/5.
-//
-
 #ifndef TINYC_COMPILER_TYPESYSTEM_H
 #define TINYC_COMPILER_TYPESYSTEM_H
-
 
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
@@ -15,23 +10,25 @@
 using namespace llvm;
 
 using TypeNamePair = std::pair<std::string, std::string>;
+using std::string;
+using std::vector;
+using std::unique_ptr;
 
 class TypeSystem;
-class mtructType;
-
-class mStructType{
-private:
-    LLVMContext &llvmContext;
-    TypeSystem &typeSystem;
-    std::string name;
-    std::vector<std::pair<std::string, std::string> > members;
-
-public:
-    mStructType(LLVMContext& llvmContext, TypeSystem &typeSystem, std::string name);
-    void addStructMember(std::string memType, std::string memName);
-    StructType* createStructType();
-
-};
+//class mtructType;
+//
+//class mStructType{
+//private:
+//    LLVMContext &llvmContext;
+//    TypeSystem &typeSystem;
+//    std::string name;
+//    std::vector<std::pair<std::string, std::string> > members;
+//
+//public:
+//    mStructType(LLVMContext& llvmContext, TypeSystem &typeSystem, std::string name);
+//    void addStructMember(std::string memType, std::string memName);
+//    StructType* createStructType();
+//};
 
 class TypeSystem {
 private:
@@ -50,20 +47,20 @@ public:
 
     // array types
     // https://stackoverflow.com/questions/35228471/how-to-create-llvm-array-type-using-allocainst
-    std::map<std::pair<Type*, uint64_t>, Type* > arrMap;
+    // std::map<std::pair<Type*, uint64_t>, Type* > arrMap;
     // pointer types
-    std::map<Type*, Type* > ptrMap;
+    // std::map<Type*, Type* > ptrMap;
     // user types
-    std::map<std::string, StructType* > structMap;
+    // std::map<std::string, StructType* > structMap;
 
     //=============================================================
     Type* getBuiltInType(std::string specifier);
 
-    std::unique_ptr<Type> getArrayType(Type* type, uint64_t size);
+    // std::unique_ptr<Type> getArrayType(Type* type, uint64_t size);
 
-    std::unique_ptr<Type> getPtrType(Type* type);
+    // std::unique_ptr<Type> getPtrType(Type* type);
 
-    std::unique_ptr<Type> getStructType(std::string name);
+    // std::unique_ptr<Type> getStructType(std::string name);
 
     Type* getType(std::string specifiers, int ptrLevel=0);
 

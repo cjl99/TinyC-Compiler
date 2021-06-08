@@ -3,6 +3,8 @@
 
 #include "ast/Ast.h"
 #include "visualize-ast/VisualizeAst.h"
+#include "backend/ObjGen/ObjGen.h"
+#include "backend/codeGen/CodeGen.h"
 using namespace std;
 #define DEBUG_PARSER
 
@@ -614,13 +616,25 @@ extern int column;
 
 #ifdef DEBUG_PARSER
 int main(int argc,char* argv[]){
+	// open file to parse
 	yyin=fopen(argv[1],"r");
 	printf("parse\n");
 	yyparse();
 	fclose(yyin);
+
+	// visualize ast and save it to file
 	VisualizeAst *graph = new VisualizeAst("AstGraph.dot");
 	graph->generateGraph();
 	graph->saveGraph();
+
+	// IR generation
+    CodeGen *CodeGenContext = new CodeGen(); // program
+    //astRoot->codeGen(&CodeGenContext);
+
+    CodeGenContext->generateCode((AstProgram *)astRoot);
+
+    ObjGen(*CodeGenContext);
+
 	return 0;
 }
 #endif

@@ -8,6 +8,9 @@
 AstExpr::AstExpr(std::string nodeType)
         :AstBase(nodeType){}
 
+llvm::Value* AstExpr::codegen(CodeGen &context) {
+    return nullptr;
+}
 
 //class AstExpression;
 
