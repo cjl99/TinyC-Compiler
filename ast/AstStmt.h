@@ -31,22 +31,19 @@ private:
 
 public:
     AstCompoundStmt(AstDeclarationList* astDeclarationList, AstStmtList* astStmtList);
-
-    AstDeclarationList* getAstDeclarationList() const;
-
-    AstStmtList* getAstStmtList() const;
-
+    AstDeclarationList* getAstDeclarationList();
+    AstStmtList* getAstStmtList();
     virtual llvm::Value* codegen(CodeGen &context) override;
 };
 
 class AstStmt: public AstNonLabelStmt{
 private:
-    AstBase *stmt;
+    AstNonLabelStmt *stmt;
     int type;
 public:
-    AstStmt(int type, AstBase* stmt);
+    AstStmt(int type, AstNonLabelStmt* stmt);
     int getType();
-    AstBase *getStmt() const;
+    AstNonLabelStmt* getStmt();
 };
 
 class AstStmtList: public AstNonLabelStmt {
@@ -58,7 +55,7 @@ public:
 
     void addStmt(AstStmt *);
 
-    std::vector<AstStmt *>& getStmtList();
+    std::vector<AstStmt *> getStmtList();
 };
 
 class AstExprStmt: public AstNonLabelStmt{
@@ -80,15 +77,10 @@ private:
 
 public:
     AstSelectStmt(AstExpression *expr, AstStmt *thenClause, AstStmt *elseClause= nullptr);
-
     AstExpression *getExpr() const;
-
     AstStmt *getThenClause() const;
-
     AstStmt *getElseClause() const;
-
     virtual llvm::Value* codegen(CodeGen &context) override;
-
 };
 
 class AstIterStmt: public AstNonLabelStmt{

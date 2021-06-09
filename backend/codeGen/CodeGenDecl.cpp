@@ -1,14 +1,17 @@
-#include "../../ast/AstDecl.h"
 #include "CodeGen.h"
+#include "../../ast/AstDecl.h"
 
-//===========AstDeclarationList_CodeGen=============
-//llvm::Value* AstDeclarationList::codegen(CodeGen &context){
-//    std::vector<AstDeclaration*>& declarationList = this->getDeclarationList();
-//    for(auto declaration: declarationList){
-//        declaration->codeGen(context);
-//    }
-//    return nullptr;
-//}
+//===========DeclarationList codegen=============
+// llvm::Value* AstDeclarationList::codegen(CodeGen &context) {
+//     std::cout << "Generate declaration_list" << std::endl;
+    
+//     std::vector<AstDeclaration*> declarationList = this->getDeclarationList();
+    
+//     for(auto declaration: declarationList){
+//         declaration->codegen(context);
+//     }
+//     return nullptr;
+// }
 
 //===========Todo=============
 //declaration:type_specifier {init_declarator}*n ';'

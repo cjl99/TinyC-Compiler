@@ -17,6 +17,8 @@
 #include <llvm/Support/raw_ostream.h>
 
 #include "../TypeSystem/TypeSystem.h"
+
+#include "../../ast/AstBase.h"
 #include "../../ast/AstProg.h"
 
 //using legacy::PassManager;

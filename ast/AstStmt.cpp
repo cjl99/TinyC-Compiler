@@ -8,40 +8,43 @@ llvm::Value* AstNonLabelStmt::codegen(CodeGen &context) {
 }
 // ===============================================
 
-AstStmt:: AstStmt(int type, AstBase* stmt)
+AstStmt:: AstStmt(int type, AstNonLabelStmt* stmt)
         : AstNonLabelStmt("statement"), type(type), stmt(stmt){}
 
-AstBase * AstStmt::getStmt() const{
-    return stmt;
+AstNonLabelStmt* AstStmt::getStmt() {
+    return this->stmt;
 }
 
 int AstStmt::getType() {
-    return type;
+    return this->type;
 }
 
 // ===============================================
 AstStmtList:: AstStmtList()
-        :AstNonLabelStmt("statement_list"){}
+        :AstNonLabelStmt("statement_list"){
+            stmt_list = vector<AstStmt *>(); 
+        }
 
-void AstStmtList:: addStmt(AstStmt * stmt){
+void AstStmtList:: addStmt(AstStmt *stmt){
     stmt_list.push_back(stmt);
 }
 
-std::vector<AstStmt *> & AstStmtList::getStmtList(){
-    return stmt_list;
+std::vector<AstStmt *> AstStmtList::getStmtList(){
+    return this->stmt_list;
 }
-// ===============================================
 
- AstCompoundStmt::AstCompoundStmt(AstDeclarationList* astDeclarationList,AstStmtList* astStmtList)
-                :AstNonLabelStmt("compound_statement"),astDeclarationList(astDeclarationList), astStmtList(astStmtList) {
+// compound stmt
+AstCompoundStmt::AstCompoundStmt(AstDeclarationList* astDeclarationList, AstStmtList* astStmtList)
+:AstNonLabelStmt("compound_statement") {
+    this->astDeclarationList = astDeclarationList;
+    this->astStmtList = astStmtList;
+}
 
-                }
-
-AstDeclarationList* AstCompoundStmt::getAstDeclarationList() const{
+AstDeclarationList* AstCompoundStmt::getAstDeclarationList(){
     return this->astDeclarationList;
 }
 
-AstStmtList* AstCompoundStmt::getAstStmtList() const{
+AstStmtList* AstCompoundStmt::getAstStmtList(){
     return this->astStmtList;
 }
 

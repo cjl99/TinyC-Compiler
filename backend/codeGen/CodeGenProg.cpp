@@ -20,7 +20,7 @@ Value *AstExternalExpr::codegen(CodeGen &context) {
     } else if(this->getFunDef()){
         v = this->getFunDef()->codegen(context);
     } else {
-        LogError("AstExternalExpr error!");
+        LogError("Generate external_expr error: nothing found!");
     }
 
     // if(!v) LogErrorV("AstExternal->" + (isdecl?"Declaration":"Function") + " codegen: error!");
@@ -52,7 +52,6 @@ llvm::Value* AstFunDef::codegen(CodeGen &context) {
 
     FunctionType* functionType = FunctionType::get(retType, argTypes, false);
     Function* function = Function::Create(functionType, GlobalValue::ExternalLinkage, funcName, context.theModule.get());
-
     BasicBlock* basicBlock = BasicBlock::Create(context.llvmContext, funcName, function, nullptr);
 
     context.builder.SetInsertPoint(basicBlock);
@@ -76,8 +75,9 @@ llvm::Value* AstFunDef::codegen(CodeGen &context) {
         context.setSymbolType(typeName, context.typeSystem.getType((*param).first->getLabel(), ptrLevel));
         param++;
     }
-
+    
     this->getCompound_statement()->codegen(context);
+
     if( context.getCurrentReturnValue() ){
         context.builder.CreateRet(context.getCurrentReturnValue());
     } else{

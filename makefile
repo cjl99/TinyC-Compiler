@@ -33,7 +33,7 @@ y.tab.hpp: y.tab.cpp
 	echo "y.tab.h was created at the same time as y.tab.c"
 	
 lex.yy.o: lex.yy.cpp y.tab.hpp $(OBJS) 
-	g++ -c lex.yy.cpp -std=c++11 $(LLVM_COMPILE_FLAGS)
+	g++ -c lex.yy.cpp -std=g++17 $(LLVM_COMPILE_FLAGS)
 
 lex.yy.cpp: 
 	lex -o lex.yy.cpp ./lexer/c.l

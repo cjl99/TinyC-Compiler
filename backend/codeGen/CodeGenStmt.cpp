@@ -1,4 +1,5 @@
 #include "CodeGen.h"
+#include "../../ast/AstStmt.h"
 
 static Value* CastToBoolean(CodeGen& context, Value* condValue){
     if(condValue->getType()->getTypeID() == Type::IntegerTyID){
@@ -13,35 +14,69 @@ static Value* CastToBoolean(CodeGen& context, Value* condValue){
 
 llvm::Value* AstCompoundStmt::codegen(CodeGen &context) {
     std::cout << "Generate compound statement" << std::endl;
-
-    vector<AstDeclaration *> decl_list = this->getAstDeclarationList()->getDeclarationList();
-
-    vector<AstStmt *> stmtList = this->getAstStmtList()->getStmtList();
-    std::cout << "test2" << std::endl;
-
-    Function* theFunction = context.builder.GetInsertBlock()->getParent();
-    std::cout << "test3" << std::endl;
-
-    BasicBlock* basicBlock = BasicBlock::Create(context.llvmContext, "compoundStmt", theFunction);
-    std::cout << "test4" << std::endl;
-
-    context.builder.SetInsertPoint(basicBlock);
-    std::cout << "test5" << std::endl;
-
-    context.pushBlock(basicBlock);
-    std::cout << "test6" << std::endl;
-
-
-    for(auto decl : decl_list) {
-        decl->codegen(context);
-    }
-    Value* last = nullptr;
-    for(auto stmt : stmtList){
-        last = stmt->codegen(context);
+    // declaration list part
+    AstDeclarationList *decl_list = this->getAstDeclarationList();
+    if(decl_list) {
+        std::vector<AstDeclaration *> decl_v = decl_list->getDeclarationVector();
+        for (auto decl:decl_v) {
+            decl->codegen(context);
+        }
     }
 
-    context.popBlock();
-    return last;
+    // stmt list part
+    AstStmtList *stmtlist = this->getAstStmtList();
+
+    if(stmtlist) {
+        vector<AstStmt *> stmt_vec = stmtlist->getStmtList();
+        for(auto stmt: stmt_vec) {
+            int stmt_type = stmt->getType();
+            switch (stmt_type) {
+                case 1:
+                    ((AstCompoundStmt *) stmt)->codegen(context);
+                    break;
+                case 2:
+                    ((AstExprStmt *) stmt)->codegen(context);
+                    break;
+                case 3:
+                    ((AstSelectStmt *) stmt)->codegen(context);
+                    break;
+                case 4:
+                    ((AstIterStmt *) stmt)->codegen(context);
+                    break;
+                case 5:
+                    ((AstJmpStmt *) stmt)->codegen(context);
+                    break;
+            }
+        }
+    }
+
+    return nullptr;
+    // vector<AstDeclaration *> decl_list = ->getDeclarationList();
+
+    // vector<AstStmt *> stmtList = this->getAstStmtList()->getStmtList();
+
+
+    // Function* theFunction = context.builder.GetInsertBlock()->getParent();
+
+
+    // BasicBlock* basicBlock = BasicBlock::Create(context.llvmContext, "compoundStmt", theFunction);
+
+    // context.builder.SetInsertPoint(basicBlock);
+
+
+    // context.pushBlock(basicBlock);
+
+
+    // for(auto decl : decl_list) {
+    //     decl->codegen(context);
+    // }
+    // Value* last = nullptr;
+    // for(auto stmt : stmtList){
+    //     last = stmt->codegen(context);
+    // }
+
+    // context.popBlock();
+    // return last;
 }
 
 llvm::Value* AstSelectStmt::codegen(CodeGen &context){

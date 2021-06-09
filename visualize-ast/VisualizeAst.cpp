@@ -494,7 +494,7 @@ int VisualizeAst::visualAstDeclarationList(AstDeclarationList* astDeclarationLis
     std::string type = astDeclarationList->getNodeType();
     int pid = addNodes(type);
 
-    for(AstDeclaration *astDeclaration : astDeclarationList->getDeclarationList()) {
+    for(AstDeclaration *astDeclaration : astDeclarationList->getDeclarationVector()) {
         int cid = visualAstDeclaration(astDeclaration);
         addEdges(pid, cid);
     }

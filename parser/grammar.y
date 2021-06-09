@@ -545,8 +545,8 @@ declaration_list
 		$$->addDeclaration($1);
 	}
 	| declaration_list declaration{
+		$1->addDeclaration($2);
 		$$ = $1;
-		$$->addDeclaration($2);
 	}
 	;
 

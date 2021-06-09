@@ -25,11 +25,11 @@ AstInitDeclList* AstDeclaration::getInitDeclList() {
 AstDeclarationList::AstDeclarationList(): AstDecl("declaration_list"){}
 
 void AstDeclarationList::addDeclaration(AstDeclaration* declaration){
-    declarationList.push_back(declaration);
+    this->declarationList.push_back(declaration);
 }
 
-std::vector<AstDeclaration*>& AstDeclarationList::getDeclarationList(){
-    return declarationList;
+std::vector<AstDeclaration*>& AstDeclarationList::getDeclarationVector(){
+    return this->declarationList;
 }
 
 /* AstInitDeclList

@@ -44,7 +44,8 @@ class AstDeclarationList: public AstDecl{
 public:
     AstDeclarationList();
     void addDeclaration(AstDeclaration* declaration);
-    std::vector<AstDeclaration*>& getDeclarationList();
+    
+    std::vector<AstDeclaration*>& getDeclarationVector();
     // virtual llvm::Value* codegen(CodeGen &context) override;
 private:
     std::vector<AstDeclaration*> declarationList;
