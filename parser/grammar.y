@@ -427,7 +427,7 @@ binary_expression
     | binary_expression '%'     binary_expression {
         $$ = new AstBinaryExpr($1, "%", $3);
     }
-
+    ;
 
 conditional_expression
 	: binary_expression {

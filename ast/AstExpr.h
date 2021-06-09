@@ -38,7 +38,7 @@ public:
     AstAssignOp* getAssignOp();
     AstExpression* getExpression();
     bool isConditionalExpr();
-    llvm::Value* codegen(CodeGen &context);
+    virtual llvm::Value* codegen(CodeGen &context) override;
 private:
     bool isCondi;
     AstCondiExpr* astCondiExpr;
@@ -46,6 +46,8 @@ private:
     AstAssignOp* astAssignOp;
     AstExpression* child_expr;
 };
+
+
 class AstAssignOp: public AstExpr {
 public:
     AstAssignOp(std::string op);
@@ -60,6 +62,7 @@ public:
     std::string getOperator();
     void * getPtr();
 
+    virtual llvm::Value* codegen(CodeGen &context) override;
 private:
     // op = ""  <--> AstPostfixExpr;
     // INC <--> AstUnaryExpr;
@@ -88,6 +91,8 @@ public:
     AstBinaryExpr* getAstBinaryExpr_back();
     bool isExpand();
 
+    virtual llvm::Value* codegen(CodeGen &context) override;
+
 private:
     bool isCondition;
     AstBinaryExpr* binaryExpr_front;
@@ -104,6 +109,8 @@ public:
     AstBinaryExpr* getBackBinaryExpr();
     std::string getOperator();
     bool isCastExpr();
+
+    virtual llvm::Value* codegen(CodeGen &context) override;
 
 private:
     bool isCast;
@@ -123,6 +130,8 @@ public:
     AstTypeName* getAstTypeName();
     bool isUnaryExpr();
 
+    virtual llvm::Value* codegen(CodeGen &context) override;
+
 private:
     bool isUnary;
     AstUnaryExpr* astUnaryExpr;
@@ -138,6 +147,8 @@ public:
     AstExpression* getExpression();
     std::string getLabel();
     int getType();
+
+    virtual llvm::Value* codegen(CodeGen &context) override;
 
 private:
     int type;
@@ -155,6 +166,9 @@ public:
     void *getPtr();
     AstPostfixExpr *getAstPostfixExpr();
     std::string getIdentifier();
+
+    virtual llvm::Value* codegen(CodeGen &context) override;
+
 private:
     // op <--> ptr
     // ""   --  primary_expr

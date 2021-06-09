@@ -76,7 +76,7 @@ AstExpression * AstCondiExpr::getAstExpression() {
     return this->astExpression;
 }
 bool AstCondiExpr::isExpand() {
-    return isCondition;
+    return this->isCondition;
 }
 
 //class AstUnaryExpr;
