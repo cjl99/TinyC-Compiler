@@ -10,8 +10,55 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
         return this->astCondiExpr->codegen(context);
     }
     else {
+        std::cout << "Generate assignment expression" << std::endl;
+        Value *L = this->getUnaryExpr()->codegen(context);
+        Value *R = this->getExpression()->codegen(context);
+        // Operator: ">>=" "<<=" "+=" "-=" "*=" "/=" "%=" "&=" "^=" "|="
+        std::string op = this->getAssignOp()->getOperator();
+        // is float operation or not
+        bool Lf = L->getType()->getTypeID() == Type::DoubleTyID;
+        bool Rf = R->getType()->getTypeID() == Type::DoubleTyID;
 
+        Value *res;
+        if(!Lf && !Rf) {
+            if(op=="+=") res = context.builder.CreateAdd(L, R, "add(i)tmp");
+            else if(op=="-=") res = context.builder.CreateSub(L, R, "sub(i)tmp");
+            else if(op=="*=") res = context.builder.CreateMul(L, R, "mul(i)tmp");
+            else if(op=="/=") res = context.builder.CreateSDiv(L, R, "div(i)tmp");
+            else if(op=="%=") res = LogErrorV("LLVM don't have mod operation: QAQ");  //TODO Mod Op Later
+            else if(op=="&=") res = context.builder.CreateAnd(L, R, "and(i)tmp");
+            else if(op=="|=") res = context.builder.CreateOr(L, R, "or(i)tmp");
+            else if(op=="^=") res = context.builder.CreateXor(L, R, "xor(i)tmp");
+            else if(op=="<<=") res = context.builder.CreateShl(L, R, "shl(i)tmp");
+            else if(op==">>=") res = context.builder.CreateAShr(L, R, "shr(i)tmp");
+            else res = LogErrorV("Unknown operator in assignment_expression");
+        }
+        else {
+            // change L & R to double
+            if(!Lf) L = context.builder.CreateUIToFP(L, Type::getDoubleTy(context.llvmContext), "ftmpL");
+            if(!Rf) R = context.builder.CreateUIToFP(R, Type::getDoubleTy(context.llvmContext), "ftmpR");
+
+            if(op=="+=") res = context.builder.CreateFAdd(L, R, "add(f)tmp");
+            else if(op=="-=") res = context.builder.CreateFSub(L, R, "sub(f)tmp");
+            else if(op=="*=") res = context.builder.CreateFMul(L, R, "mul(f)tmp");
+            else if(op=="/=") res = context.builder.CreateFDiv(L, R, "div(f)tmp");
+            else if(op=="%=") res = LogErrorV("operator's type: 'double', invalid operands '%='");
+            else if(op=="&=") res = LogErrorV("operator's type: 'double', invalid operands '&='");
+            else if(op=="|=") res = LogErrorV("operator's type: 'double', invalid operands '|='");
+            else if(op=="^=") res = LogErrorV("operator's type: 'double', invalid operands '^='");
+            else if(op=="<<=") res = LogErrorV("operator's type: 'double', invalid operands '<<='");
+            else if(op==">>=") res = LogErrorV("operator's type: 'double', invalid operands '>>='");
+            else res = LogErrorV("Unknown operator in assignment_expression");
+        }
+
+        if(res) {
+            // if L is double originally, should change back to int after assignment.
+            if(!Lf) res=context.builder.CreateFPToUI(res, Type::getDoubleTy(context.llvmContext), "itmp");
+            context.builder.CreateStore(res, L);
+        }
+        return L;
     }
+
     return nullptr;
 }
 

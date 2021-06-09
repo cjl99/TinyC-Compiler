@@ -1,3 +1,5 @@
 int main(){
-    int b, c=0x1111, a=010;
+    int b;
+    int c = 1 + 2;
+
 }
