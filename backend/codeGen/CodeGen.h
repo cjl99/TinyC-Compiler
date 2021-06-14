@@ -68,6 +68,7 @@ public:
     void generateCode(AstProgram *root);
     Value *getCurrentReturnValue();
     void setCurrentReturnValue(Value *retValue);
+    static Value* CastToBoolean(CodeGen& context, Value* condValue);
 };
 void LogError(const char *str);
 Value* LogErrorV(const char* str);

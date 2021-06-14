@@ -44,6 +44,8 @@ public:
     Type* longTy = Type::getInt64Ty(llvmContext);
     Type* floatTy = Type::getFloatTy(llvmContext);
     Type* doubleTy = Type::getDoubleTy(llvmContext);
+    Type* stringTy = Type::getInt8PtrTy(llvmContext);
+
 
     // array types
     // https://stackoverflow.com/questions/35228471/how-to-create-llvm-array-type-using-allocainst

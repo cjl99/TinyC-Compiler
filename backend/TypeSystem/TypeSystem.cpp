@@ -76,4 +76,6 @@ Type* TypeSystem::getType(string specifiers, int ptrLevel){
 }
 
 TypeSystem::TypeSystem(LLVMContext& llvmContext)
-            :llvmContext(llvmContext){}
+            :llvmContext(llvmContext){
+
+}

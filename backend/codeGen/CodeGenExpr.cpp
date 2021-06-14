@@ -63,20 +63,31 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
 }
 
 
-// conditional_expression : binary_expression  | binary_expression '?' expression ':' binary_expression
+// conditional_expression :
 llvm::Value* AstCondiExpr::codegen(CodeGen &context) {
-    if(!this->isExpand()) {
+    if(!this->isExpand()) { // binary_expression
         return this->binaryExpr_back->codegen(context);
     }
     else {
+        // TODO s
+        AstBinaryExpr *b_front = this->getAstBinaryExpr_front();
+        AstExpression *expr = this->getAstExpression();
+        AstBinaryExpr *b_back = this->getAstBinaryExpr_back();
+
+        Value *judge = b_front->codegen(context);
+        // compare judge with 0;
+        // Value *zero = ConstantInt::get(Type::getInt32Ty(context.llvmContext), 0, true);
+        judge = context.CastToBoolean(context, judge)
+        context.builder.CreateICmpEQ(judge, zero, "cmp0");
+
 
     }
     return nullptr;
 }
 
-// binary_expression
-//binary_expression : cast_expression {
-//binary_expression    binary_expression
+// binary_expression :
+//cast_expression
+//binary_expression OR_OP   binary_expression
 //binary_expression AND_OP  binary_expression {
 //binary_expression '|'     binary_expression {
 //binary_expression '^'     binary_expression {
@@ -96,12 +107,56 @@ llvm::Value* AstCondiExpr::codegen(CodeGen &context) {
 //binary_expression '%'     binary_expression {
 
 llvm::Value *AstBinaryExpr::codegen(CodeGen &context) {
+    // cast expression
     if(this->isCastExpr()) {
         return this->astCastExpr->codegen(context);
     }
-    else {
+    // binary operation
+    std::string op = this->getOperator();
+    Value *L = this->front_expr->codegen(context);
+    Value *R = this->back_expr->codegen(context);
+    // TODO
+    if(op=="&&") {
+
+    } else if(op=="||") {
+
+    } else if(op=="&") {
+
+    } else if(op=="|") {
+
+    } else if(op=="^") {
+
+    } else if(op=="==") {
+
+    } else if(op=="!=") {
+
+    } else if(op==">=") {
+
+    } else if(op=="<=") {
+
+    } else if(op=="<") {
+
+    } else if(op==">") {
+
+    } else if(op=="<<") {
+
+    } else if(op==">>") {
+
+    } else if(op=="+") {
+
+    } else if(op=="-") {
+
+    } else if(op=="*") {
+
+    } else if(op=="/") {
+
+    } else if(op=="%") {
+
+    } else {
 
     }
+
+
 
     return nullptr;
 }
@@ -112,7 +167,16 @@ llvm::Value* AstCastExpr::codegen(CodeGen &context) {
     if(this->isUnaryExpr()) {
         return this->astUnaryExpr->codegen(context);
     } else {  // cast
+        AstCastExpr *cast_expr = this->getCastExpr();
+        std::string type = this->getAstTypeName()->getType();
+        int ptrLevel = this->getAstTypeName()->getPtrLevel();
 
+        Type *dstType = context.typeSystem.getType(type, ptrLevel);
+
+        Value *tmp = cast_expr->codegen(context);
+        Type *srcType = tmp->getType();
+
+        return context.builder.CreateCast()
     }
 
     return nullptr;
@@ -127,13 +191,31 @@ llvm::Value* AstUnaryExpr::codegen(CodeGen &context) {
     }
     else {
         AstUnaryExpr *unary_expr = (AstUnaryExpr *)this->getPtr();
-        if(this->op=="++") {
-            Value *tmpv =unary_expr->codegen(context);
-            // tmpv += 1; return tmpv;
-        } else if(this->op=="--") {
 
-        } else {
+        if(this->op=="++") { // tmpv += 1; return tmpv;
+            Value *tmpv = unary_expr->codegen(context);
+            uint64_t num = 1;
+            Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), num, true);
+            return tmpv = context.builder.CreateAdd(tmpv, t1, "++op");
+        } else if(this->op=="--") { tmpv -= 1; return tmpv;
+            Value *tmpv = unary_expr->codegen(context);
+            uint64_t num = 1;
+            Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), num, true);
+            return tmpv = context.builder.CreateSub(tmpv, t1, "--op");
+        } else { // op = % * + - ~ !
+            if(op=="+") {return unary_expr->codegen(context)};
+            else if(op=="-") {
 
+            }
+            else if(op=="!") {
+
+            }
+            else if(op=="~") {
+
+            }
+            else if(op=="%") {
+
+            }
         }
     }
 

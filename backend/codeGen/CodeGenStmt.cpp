@@ -1,7 +1,7 @@
 #include "CodeGen.h"
 #include "../../ast/AstStmt.h"
 
-static Value* CastToBoolean(CodeGen& context, Value* condValue){
+static Value* CodeGen::CastToBoolean(CodeGen& context, Value* condValue){
     if(condValue->getType()->getTypeID() == Type::IntegerTyID){
         condValue = context.builder.CreateIntCast(condValue, Type::getInt1Ty(context.llvmContext), true);
         return context.builder.CreateICmpNE(condValue, ConstantInt::get(Type::getInt1Ty(context.llvmContext), 0, true));
