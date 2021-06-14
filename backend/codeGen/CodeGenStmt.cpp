@@ -51,32 +51,6 @@ llvm::Value* AstCompoundStmt::codegen(CodeGen &context) {
     }
 
     return nullptr;
-    // vector<AstDeclaration *> decl_list = ->getDeclarationList();
-
-    // vector<AstStmt *> stmtList = this->getAstStmtList()->getStmtList();
-
-
-    // Function* theFunction = context.builder.GetInsertBlock()->getParent();
-
-
-    // BasicBlock* basicBlock = BasicBlock::Create(context.llvmContext, "compoundStmt", theFunction);
-
-    // context.builder.SetInsertPoint(basicBlock);
-
-
-    // context.pushBlock(basicBlock);
-
-
-    // for(auto decl : decl_list) {
-    //     decl->codegen(context);
-    // }
-    // Value* last = nullptr;
-    // for(auto stmt : stmtList){
-    //     last = stmt->codegen(context);
-    // }
-
-    // context.popBlock();
-    // return last;
 }
 
 llvm::Value* AstSelectStmt::codegen(CodeGen &context){
@@ -84,28 +58,43 @@ llvm::Value* AstSelectStmt::codegen(CodeGen &context){
     Value* condValue = this->getExpr()->codegen(context);
 
     // cast to boolean
-    condValue = CastToBoolean(context, condValue);
+    condValue = context.CastToBoolean(context, condValue);
 
     Function* theFunction = context.builder.GetInsertBlock()->getParent();      // the function where if statement is in
+    BasicBlock *thenBlock = BasicBlock::Create(context.llvmContext, "ifthen", theFunction);
+    BasicBlock *elseBlock = BasicBlock::Create(context.llvmContext, "ifelse");
+    BasicBlock *mergeBlock = BasicBlock::Create(context.llvmContext, "ifcont");
+    context.builder.CreateCondBr(condValue, thenBlock, elseBlock);
 
-    llvm::BasicBlock *then_block = llvm::BasicBlock::Create(context.llvmContext, "if_then", theFunction);
-    llvm::BasicBlock *else_block = llvm::BasicBlock::Create(context.llvmContext, "if_else", theFunction);
-    llvm::BasicBlock *cont_block = llvm::BasicBlock::Create(context.llvmContext, "if_cont", theFunction);
+    // Emit Then
+    context.builder.SetInsertPoint(thenBlock);
+    Value *ThenV = expr->codegen(context);
+    if (ThenV == 0) return 0;
+    context.builder.CreateBr(mergeBlock);
+    // Codegen of 'Then' can change the current block, update ThenBB for the PHI.
+    thenBlock = context.builder.GetInsertBlock();
 
-    context.builder.CreateCondBr(condValue, then_block, else_block);
-    context.builder.SetInsertPoint(then_block);
-    this->getThenClause()->codegen(context);
+    // Emit Else
+    TheFunction->getBasicBlockList().push_back(elseBlock);
+    context.builder.SetInsertPoint(elseBlock);
+    context.pushBlock(elseBlock);
+    Value *ElseV = b_back->codegen();
+    context.popBlock();
+    if (ElseV == 0) return 0;
+    context.builder.CreateBr(mergeBlock);
+    // Codegen of 'Else' can change the current block, update ElseBB for the PHI.
+    elseBlock = Builder.GetInsertBlock();
 
-    context.builder.CreateBr(cont_block);
-    context.builder.SetInsertPoint(else_block);
-    if (this->getElseClause() != nullptr) {
-        this->getElseClause()->codegen(context);
-    }
-    context.builder.CreateBr(cont_block);
-    context.builder.SetInsertPoint(cont_block);
 
-    return nullptr;
+    // Emit merge block.
+    TheFunction->getBasicBlockList().push_back(mergeBlock);
+    Builder.SetInsertPoint(mergeBlock);
+    PHINode *PN = Builder.CreatePHI(Type::getDoubleTy(getGlobalContext()), 2,
+                                    "iftmp");
 
+    PN->addIncoming(ThenV, thenBlock);
+    PN->addIncoming(ElseV, elseBlock);
+    return PN;
 }
 
 llvm::Value* AstIterStmt::codegen(CodeGen &context){

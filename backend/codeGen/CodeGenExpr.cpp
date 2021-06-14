@@ -69,17 +69,52 @@ llvm::Value* AstCondiExpr::codegen(CodeGen &context) {
         return this->binaryExpr_back->codegen(context);
     }
     else {
-        // TODO s
+        // TODO b_front ? expr : b_back
         AstBinaryExpr *b_front = this->getAstBinaryExpr_front();
+        if(b_front== nullptr) return nullptr;
+
         AstExpression *expr = this->getAstExpression();
         AstBinaryExpr *b_back = this->getAstBinaryExpr_back();
 
         Value *judge = b_front->codegen(context);
         // compare judge with 0;
         // Value *zero = ConstantInt::get(Type::getInt32Ty(context.llvmContext), 0, true);
-        judge = context.CastToBoolean(context, judge)
-        context.builder.CreateICmpEQ(judge, zero, "cmp0");
+        judge = context.CastToBoolean(context, judge);
 
+        Function* theFunction = context.builder.GetInsertBlock()->getParent();      // the function where if statement is in
+        BasicBlock *thenBlock = BasicBlock::Create(context.llvmContext, "3then", theFunction);
+        BasicBlock *elseBlock = BasicBlock::Create(context.llvmContext, "3else");
+        BasicBlock *mergeBlock = BasicBlock::Create(context.llvmContext, "3cont");
+        context.builder.CreateCondBr(judge, thenBlock, elseBlock);
+
+        // Emit Then
+        context.builder.SetInsertPoint(thenBlock);
+        Value *ThenV = expr->codegen(context);
+        if (ThenV == 0) return 0;
+        context.builder.CreateBr(mergeBlock);
+        // Codegen of 'Then' can change the current block, update ThenBB for the PHI.
+        thenBlock = context.builder.GetInsertBlock();
+
+        // Emit Else
+        TheFunction->getBasicBlockList().push_back(elseBlock);
+        context.builder.SetInsertPoint(elseBlock);
+        context.pushBlock(elseBlock);
+        Value *ElseV = b_back->codegen();
+        context.popBlock();
+        if (ElseV == 0) return 0;
+        context.builder.CreateBr(mergeBlock);
+        // Codegen of 'Else' can change the current block, update ElseBB for the PHI.
+        elseBlock = Builder.GetInsertBlock();
+
+
+        // Emit merge block.
+        TheFunction->getBasicBlockList().push_back(mergeBlock);
+        context.builder.SetInsertPoint(mergeBlock);
+        PHINode *PN = context.builder.CreatePHI(Type::getDoubleTy(getGlobalContext()), 2, "iftmp");
+
+        PN->addIncoming(ThenV, thenBlock);
+        PN->addIncoming(ElseV, elseBlock);
+        return PN;
 
     }
     return nullptr;
@@ -203,9 +238,12 @@ llvm::Value* AstUnaryExpr::codegen(CodeGen &context) {
             Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), num, true);
             return tmpv = context.builder.CreateSub(tmpv, t1, "--op");
         } else { // op = % * + - ~ !
-            if(op=="+") {return unary_expr->codegen(context)};
-            else if(op=="-") {
-
+            Value *temp = unary_expr->codegen(context);
+            if(op=="+") {
+                return temp;
+            } else if(op=="-") {
+                Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), 0, true);
+                return context.builder.CreateSub(t1, temp, "-op");
             }
             else if(op=="!") {
 
@@ -261,6 +299,7 @@ llvm::Value * AstPrimaryExpr::codegen(CodeGen &context) {
 
     if(primary_type==1) { // IDENTIFIER -- name char *
         this->getLabel();
+
     }
     else if(primary_type==2) { //CONSTANT f ll l 什么的先不考虑 就考虑整数
 //   16进制 {HP}{H}+{IS}?			{ yylval.str = strdup(yytext); RETURN_TOKEN(CONSTANT); }  0[xX][a-fA-F0-9]+(((u|U)(l|L|ll|LL)?)|((l|L|ll|LL)(u|U)?))
