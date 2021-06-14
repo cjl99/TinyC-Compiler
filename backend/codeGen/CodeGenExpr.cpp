@@ -2,6 +2,17 @@
 #include "../../ast/AstExpr.h"
 #include "CodeGen.h"
 
+static Value* CastToBoolean(CodeGen& context, Value* condValue){
+
+    if( condValue->getType()->getTypeID() == Type::IntegerTyID ){
+        condValue = context.builder.CreateIntCast(condValue, Type::getInt1Ty(context.llvmContext), true);
+        return context.builder.CreateICmpNE(condValue, ConstantInt::get(Type::getInt1Ty(context.llvmContext), 0, true));
+    }else if( condValue->getType()->getTypeID() == Type::DoubleTyID ){
+        return context.builder.CreateFCmpONE(condValue, ConstantFP::get(context.llvmContext, APFloat(0.0)));
+    }else{
+        return condValue;
+    }
+}
 
 // expression : conditional_expression | unary_expression assignment_operator expression
 llvm::Value* AstExpression::codegen(CodeGen &context){
@@ -115,50 +126,64 @@ llvm::Value *AstBinaryExpr::codegen(CodeGen &context) {
     std::string op = this->getOperator();
     Value *L = this->front_expr->codegen(context);
     Value *R = this->back_expr->codegen(context);
-    // TODO
-    if(op=="&&") {
+    bool isFloat = false;
 
-    } else if(op=="||") {
-
-    } else if(op=="&") {
-
-    } else if(op=="|") {
-
-    } else if(op=="^") {
-
-    } else if(op=="==") {
-
-    } else if(op=="!=") {
-
-    } else if(op==">=") {
-
-    } else if(op=="<=") {
-
-    } else if(op=="<") {
-
-    } else if(op==">") {
-
-    } else if(op=="<<") {
-
-    } else if(op==">>") {
-
-    } else if(op=="+") {
-
-    } else if(op=="-") {
-
-    } else if(op=="*") {
-
-    } else if(op=="/") {
-
-    } else if(op=="%") {
-
-    } else {
-
+    if( (L->getType()->getTypeID() == Type::DoubleTyID) || (R->getType()->getTypeID() == Type::DoubleTyID) ){  // type upgrade
+        isFloat = true;
+        if( (R->getType()->getTypeID() != Type::DoubleTyID) ){
+            R = context.builder.CreateUIToFP(R, Type::getDoubleTy(context.llvmContext), "ftmp");
+        }
+        if( (L->getType()->getTypeID() != Type::DoubleTyID) ){
+            L = context.builder.CreateUIToFP(L, Type::getDoubleTy(context.llvmContext), "ftmp");
+        }
     }
 
-
+    if(op=="&&") {
+        L = CastToBoolean(context, L);
+        R = CastToBoolean(context, R);
+        return context.builder.CreateAnd(L, R, "and(i)tmp");
+    } else if(op=="||") {
+        L = CastToBoolean(context, L);
+        R = CastToBoolean(context, R);
+        return context.builder.CreateOr(L, R, "or(i)tmp");
+    } else if(op=="&") {
+        return isFloat ? LogErrorV("Double type has no AND operation") : context.builder.CreateAnd(L, R, "andtmp");
+    } else if(op=="|") {
+        return isFloat ? LogErrorV("Double type has no OR operation") : context.builder.CreateOr(L, R, "ortmp");
+    } else if(op=="^") {
+        return isFloat ? LogErrorV("Double type has no XOR operation") : context.builder.CreateXor(L, R, "xortmp");
+    } else if(op=="==") {
+        return isFloat ? context.builder.CreateFCmpOEQ(L, R, "cmpftmp") : context.builder.CreateICmpEQ(L, R, "cmptmp");
+    } else if(op=="!=") {
+        return isFloat ? context.builder.CreateFCmpONE(L, R, "cmpftmp") : context.builder.CreateICmpNE(L, R, "cmptmp");
+    } else if(op==">=") {
+        return isFloat ? context.builder.CreateFCmpOGE(L, R, "cmpftmp") : context.builder.CreateICmpSGE(L, R, "cmptmp");
+    } else if(op=="<=") {
+        return isFloat ? context.builder.CreateFCmpOLE(L, R, "cmpftmp") : context.builder.CreateICmpSLE(L, R, "cmptmp");
+    } else if(op=="<") {
+        return isFloat ? context.builder.CreateFCmpULT(L, R, "cmpftmp") : context.builder.CreateICmpULT(L, R, "cmptmp");
+    } else if(op==">") {
+        return isFloat ? context.builder.CreateFCmpOGT(L, R, "cmpftmp") : context.builder.CreateICmpSGT(L, R, "cmptmp");
+    } else if(op=="<<") {
+        return isFloat ? LogErrorV("Double type has no LEFT SHIFT operation") : context.builder.CreateShl(L, R, "shltmp");
+    } else if(op==">>") {
+        return isFloat ? LogErrorV("Double type has no RIGHT SHIFT operation") : context.builder.CreateAShr(L, R, "ashrtmp");
+    } else if(op=="+") {
+        return isFloat ? context.builder.CreateFAdd(L, R, "addftmp") : context.builder.CreateAdd(L, R, "addtmp");
+    } else if(op=="-") {
+        return isFloat ? context.builder.CreateFSub(L, R, "subftmp") : context.builder.CreateSub(L, R, "subtmp");
+    } else if(op=="*") {
+        return isFloat ? context.builder.CreateFMul(L, R, "mulftmp") : context.builder.CreateMul(L, R, "multmp");
+    } else if(op=="/") {
+        return isFloat ? context.builder.CreateFDiv(L, R, "divftmp") : context.builder.CreateSDiv(L, R, "divtmp");
+    } else if(op=="%") {
+        return LogErrorV("LLVM don't have mod operation: QAQ");  //TODO Mod Op Later
+    } else {
+        return LogErrorV("Unknown binary operator");
+    }
 
     return nullptr;
+
 }
 
 // cast_expression
