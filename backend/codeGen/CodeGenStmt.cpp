@@ -1,17 +1,6 @@
 #include "CodeGen.h"
 #include "../../ast/AstStmt.h"
 
-static Value* CodeGen::CastToBoolean(CodeGen& context, Value* condValue){
-    if(condValue->getType()->getTypeID() == Type::IntegerTyID){
-        condValue = context.builder.CreateIntCast(condValue, Type::getInt1Ty(context.llvmContext), true);
-        return context.builder.CreateICmpNE(condValue, ConstantInt::get(Type::getInt1Ty(context.llvmContext), 0, true));
-    }else if( condValue->getType()->getTypeID() == Type::DoubleTyID){
-        return context.builder.CreateFCmpONE(condValue, ConstantFP::get(context.llvmContext, APFloat(0.0)));
-    }
-    return condValue;
-
-}
-
 llvm::Value* AstCompoundStmt::codegen(CodeGen &context) {
     std::cout << "Generate compound statement" << std::endl;
     // declaration list part
