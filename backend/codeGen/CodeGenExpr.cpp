@@ -2,18 +2,6 @@
 #include "../../ast/AstExpr.h"
 #include "CodeGen.h"
 
-static Value* CastToBoolean(CodeGen& context, Value* condValue){
-
-    if( condValue->getType()->getTypeID() == Type::IntegerTyID ){
-        condValue = context.builder.CreateIntCast(condValue, Type::getInt1Ty(context.llvmContext), true);
-        return context.builder.CreateICmpNE(condValue, ConstantInt::get(Type::getInt1Ty(context.llvmContext), 0, true));
-    }else if( condValue->getType()->getTypeID() == Type::DoubleTyID ){
-        return context.builder.CreateFCmpONE(condValue, ConstantFP::get(context.llvmContext, APFloat(0.0)));
-    }else{
-        return condValue;
-    }
-}
-
 // expression : conditional_expression | unary_expression assignment_operator expression
 llvm::Value* AstExpression::codegen(CodeGen &context){
     // conditional_expr
@@ -233,13 +221,24 @@ llvm::Value* AstUnaryExpr::codegen(CodeGen &context) {
 
             }
             else if(op=="!") {
+                Value *tmpv = unary_expr->codegen(context);
+                tempv = CastToBoolean(context, tempv);
+                if(tmpv->getType()->getTypeID() == Type::IntegerTyID){
+                    return context.builder.CreateNot(tempv, "nottmp");
+                }
+                else return LogErrorV("~ operator must apply to numerics");
 
             }
             else if(op=="~") {
-
+                Value *tmpv = unary_expr->codegen(context);
+                if(tmpv->getType()->getTypeID() == Type::IntegerTyID){
+                    Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), 0, true);
+                    return context.builder.CreateXor(tmpv, t1, "xortmp");
+                }
+                else return LogErrorV("~ operator must apply to integer");
             }
             else if(op=="%") {
-
+                return LogErrorV("Unknown % operator");
             }
         }
     }
@@ -271,7 +270,7 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
     } else if(this->op=="->") {
 
     } else if(this->op=="++") {
-
+        
     } else if(this->op=="--") {
 
     }
