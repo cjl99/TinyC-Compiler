@@ -52,41 +52,41 @@ llvm::Value* AstFunDef::codegen(CodeGen &context) {
 
     FunctionType* functionType = FunctionType::get(retType, argTypes, false);
     Function* function = Function::Create(functionType, GlobalValue::ExternalLinkage, funcName, context.theModule.get());
-    BasicBlock* basicBlock = BasicBlock::Create(context.llvmContext, funcName, function, nullptr);
+    if( !this->getIsExtern() ) {
+        BasicBlock *basicBlock = BasicBlock::Create(context.llvmContext, funcName, function, nullptr);
 
-    context.builder.SetInsertPoint(basicBlock);
-    context.pushBlock(basicBlock);
+        context.builder.SetInsertPoint(basicBlock);
+        context.pushBlock(basicBlock);
 
-    // declare function params
-    auto param = paramList.begin();
+        // declare function params
+        auto param = paramList.begin();
 
-    for(auto &irArgIter: function->args()){
-        irArgIter.setName((*param).second->getDirectDeclarator()->getIdentifier());
-        Value* argAlloc;
-        int ptrLevel = 0;
-        if((*param).second->hasPointer())
-            ptrLevel = (*param).second->getPointer()->getStarNum();
-        string typeName = (*param).second->getDirectDeclarator()->getIdentifier();
+        for (auto &irArgIter: function->args()) {
+            irArgIter.setName((*param).second->getDirectDeclarator()->getIdentifier());
+            Value *argAlloc;
+            int ptrLevel = 0;
+            if ((*param).second->hasPointer())
+                ptrLevel = (*param).second->getPointer()->getStarNum();
+            string typeName = (*param).second->getDirectDeclarator()->getIdentifier();
 
-        argAlloc = context.builder.CreateAlloca(context.typeSystem.getType((*param).first->getLabel(), ptrLevel));
+            argAlloc = context.builder.CreateAlloca(context.typeSystem.getType((*param).first->getLabel(), ptrLevel));
 
-        context.builder.CreateStore(&irArgIter, argAlloc, false);
-        context.setSymbolValue(typeName, argAlloc);
-        context.setSymbolType(typeName, context.typeSystem.getType((*param).first->getLabel(), ptrLevel));
-        param++;
+            context.builder.CreateStore(&irArgIter, argAlloc, false);
+            context.setSymbolValue(typeName, argAlloc);
+            context.setSymbolType(typeName, context.typeSystem.getType((*param).first->getLabel(), ptrLevel));
+            param++;
+        }
+
+        this->getCompound_statement()->codegen(context);
+
+        if (context.getCurrentReturnValue()) {
+            context.builder.CreateRet(context.getCurrentReturnValue());
+        } else {
+            return LogErrorV("Function block return value not founded");
+        }
+        context.popBlock();
     }
-    
-    this->getCompound_statement()->codegen(context);
-
-    if( context.getCurrentReturnValue() ){
-        context.builder.CreateRet(context.getCurrentReturnValue());
-    } else{
-        return LogErrorV("Function block return value not founded");
-    }
-    context.popBlock();
-
     return function;
-
 }
 
 

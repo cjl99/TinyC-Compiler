@@ -66,7 +66,7 @@ char *key;
 	AstJmpStmt* ast_jmp_stmt;
 
 }
-%token<str> IDENTIFIER CONSTANT STRING_LITERAL
+%token<str> IDENTIFIER CONSTANT STRING_LITERAL EXTERN
 %token<str> PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token<str> AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token<str> SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
@@ -155,6 +155,9 @@ function_definition
 	}
 	| type_specifier pointer IDENTIFIER '(' parameter_list ')' compound_statement{
 		$$ = new AstFunDef($1, $2, $3, $5, $7);
+	}
+	| EXTERN type_specifier IDENTIFIER '(' parameter_list ')' ';'{
+  $$ = new AstFunDef($2, nullptr, $3, $5, nullptr, true);
 	}
 	;
 

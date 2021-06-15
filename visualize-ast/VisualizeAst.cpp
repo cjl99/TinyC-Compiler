@@ -211,8 +211,10 @@ int VisualizeAst::visualAstFunDef(AstFunDef* astFunDef) {
     addEdges(pid, cid4);
 
     AstCompoundStmt* compound_statement = astFunDef->getCompound_statement();
-    int cid5 = visualAstCompoundStmt(compound_statement);
-    addEdges(pid, cid5);
+    if(compound_statement!= nullptr){
+        int cid5 = visualAstCompoundStmt(compound_statement);
+        addEdges(pid, cid5);
+    }
 
     return pid;
 }

@@ -43,6 +43,7 @@ WS  [ \t\v\n\f]
 "continue"				{ yylval.str = strdup(yytext);RETURN_TOKEN(CONTINUE); }
 "double"				{ yylval.str = strdup(yytext);RETURN_TOKEN(DOUBLE); }
 "else"					{ yylval.str = strdup(yytext);RETURN_TOKEN(ELSE); }
+"extern"					{ yylval.str = strdup(yytext);RETURN_TOKEN(EXTERN); }
 "float"					{ yylval.str = strdup(yytext);RETURN_TOKEN(FLOAT); }
 "for"					{ yylval.str = strdup(yytext); RETURN_TOKEN(FOR); }
 "if"					{ yylval.str = strdup(yytext);RETURN_TOKEN(IF); }
