@@ -366,7 +366,34 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
     if(this->op=="[]") {
 
     } else if(this->op=="()") {
+        // Invoke Function Here
+        AstPrimaryExpr *primary_expr = (AstPrimaryExpr *)this->getAstPostfixExpr()->getPtr();
+        std::string funcName = primary_expr->getLabel();
+        cout << "Generating function call of " << funcName << endl;
+        Function * calleeF = context.theModule->getFunction(funcName);
 
+        AstArgExprList* arg_list = (AstArgExprList *)this->getPtr();
+        std::vector<AstExpression *> arg_vec = arg_list->getAstExpression();
+
+        if( !calleeF ){
+            LogErrorV("Function name not found");
+        }
+        if( calleeF->arg_size() != arg_vec.size() ){
+            LogErrorV("Function arguments size not match, calleeF=" + std::to_string(calleeF->size()) +
+                        ", this->arguments=" + std::to_string(arg_vec.size())
+                        );
+        }
+
+        std::vector<Value*> argsv;
+        for(auto it=arg_vec.begin(); it!=arg_vec.end(); it++){
+            argsv.push_back((*it)->codegen(context));
+            if( !argsv.back() ){        // if any argument codegen fail
+                LogErrorV("Error in function call: func args error");
+                return nullptr;
+            }
+        }
+
+        return context.builder.CreateCall(calleeF, argsv, "calltmp");
     } else if(this->op==".") {
 
     } else if(this->op=="->") {
