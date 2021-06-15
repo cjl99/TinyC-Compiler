@@ -32,8 +32,8 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
         Value *res;
 
         if(!Lf && !Rf) {
-            if(op=="+=") res = context.builder.CreateAdd(L, R, "add(i)tmp");
-            else if(op=="-=") res = context.builder.CreateSub(L, R, "sub(i)tmp");
+            if(op=="+=") res = context.builder.CreateAdd(L, R, "assign.add");
+            else if(op=="-=") res = context.builder.CreateSub(L, R, "assign.sub");
             else if(op=="*=") res = context.builder.CreateMul(L, R, "mul(i)tmp");
             else if(op=="/=") res = context.builder.CreateSDiv(L, R, "div(i)tmp");
             else if(op=="%=") res = LogErrorV("LLVM don't have mod operation: QAQ");  //TODO Mod Op Later
@@ -67,6 +67,9 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
         if(res) {
             // if L is int and R is double originally, should change back to int after assignment.
             if(!Lf && Rf) res=context.builder.CreateFPToUI(res, Type::getInt32Ty(context.llvmContext), "itmp");
+            if(res->getType()->getTypeID() == Type::PointerTyID) {
+                res = context.builder.CreateLoad(res);
+            }
             context.builder.CreateStore(res, L);
         }
         return L;
