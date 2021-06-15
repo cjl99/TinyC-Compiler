@@ -1,5 +1,5 @@
-FLAG = `llvm-config --cxxflags --ldflags --libs`
-LLVM_LINK_FLAGS = `llvm-config --ldflags --libs`
+FLAG = `llvm-config --cxxflags --ldflags --libs --system-libs`
+LLVM_LINK_FLAGS = `llvm-config --ldflags --libs --system-libs`
 LLVM_COMPILE_FLAGS = `llvm-config --cxxflags`
 FLAG_C_VERSION = -std=c++11
 

@@ -5,10 +5,11 @@ llvm::Value* AstCompoundStmt::codegen(CodeGen &context) {
     std::cout << "Generate compound statement" << std::endl;
     // declaration list part
     AstDeclarationList *decl_list = this->getAstDeclarationList();
+    Value *lastV = nullptr;
     if(decl_list) {
         std::vector<AstDeclaration *> decl_v = decl_list->getDeclarationVector();
         for (auto decl:decl_v) {
-            decl->codegen(context);
+            lastV = decl->codegen(context);
         }
     }
 
@@ -17,11 +18,11 @@ llvm::Value* AstCompoundStmt::codegen(CodeGen &context) {
     if(stmtlist) {
         vector<AstStmt *> stmt_vec = stmtlist->getStmtList();
         for(AstStmt *stmt: stmt_vec) {
-            stmt->codegen(context);
+            lastV = stmt->codegen(context);
         }
     }
 
-    return nullptr;
+    return lastV;
 }
 
 llvm::Value * AstStmt::codegen(CodeGen &context) {
@@ -59,7 +60,12 @@ llvm::Value* AstSelectStmt::codegen(CodeGen &context){
     BasicBlock *thenBlock = BasicBlock::Create(context.llvmContext, "ifthen", theFunction);
     BasicBlock *elseBlock = BasicBlock::Create(context.llvmContext, "ifelse");
     BasicBlock *mergeBlock = BasicBlock::Create(context.llvmContext, "ifcont");
-    context.builder.CreateCondBr(condValue, thenBlock, elseBlock);
+
+    if( this->getElseClause() ){
+        context.builder.CreateCondBr(condValue, thenBlock, elseBlock);
+    } else{
+        context.builder.CreateCondBr(condValue, thenBlock, mergeBlock);
+    }
 
     // Emit Then
     context.builder.SetInsertPoint(thenBlock);
@@ -70,11 +76,13 @@ llvm::Value* AstSelectStmt::codegen(CodeGen &context){
 
     if (ThenV == nullptr) {
         std::cout << "No Then clause" << std::endl;
-        return 0;
     }
-    context.builder.CreateBr(mergeBlock);
+
     // Codegen of 'Then' can change the current block, update ThenBB for the PHI.
     thenBlock = context.builder.GetInsertBlock();
+    if( thenBlock->getTerminator() == nullptr ){       //
+        context.builder.CreateBr(mergeBlock);
+    }
 
     // Emit Else
     Value *ElseV = nullptr;
@@ -84,6 +92,7 @@ llvm::Value* AstSelectStmt::codegen(CodeGen &context){
         context.pushBlock(elseBlock);
         ElseV = this->getElseClause()->codegen(context);
         context.popBlock();
+
         if (ElseV == nullptr) {
             std::cout << "No else clause" << std::endl;
         }
@@ -93,18 +102,13 @@ llvm::Value* AstSelectStmt::codegen(CodeGen &context){
         elseBlock = context.builder.GetInsertBlock();
     }
 
-
-
     // Emit merge block.
     theFunction->getBasicBlockList().push_back(mergeBlock);
     context.builder.SetInsertPoint(mergeBlock);
-    PHINode *PN = context.builder.CreatePHI(Type::getDoubleTy(context.llvmContext), 2,
-                                    "iftmp");
 
-    PN->addIncoming(ThenV, thenBlock);
-    PN->addIncoming(ElseV, elseBlock);
-    return PN;
+     return nullptr;
 }
+
 
 llvm::Value* AstIterStmt::codegen(CodeGen &context){
     Function* theFunction = context.builder.GetInsertBlock()->getParent();

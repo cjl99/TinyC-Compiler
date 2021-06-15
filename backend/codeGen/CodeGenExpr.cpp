@@ -405,11 +405,24 @@ llvm::Value * AstPrimaryExpr::codegen(CodeGen &context) {
     int primary_type = this->getType();
 
     if(primary_type==1) { // IDENTIFIER -- name char *
-        return context.getSymbolValue(this->getLabel());
-//        if( !value ){
-//            return LogErrorV("Unknown variable name " + this->getLabel());
+        cout << "Generating identifier " << this->getLabel() << endl;
+        Value* value = context.getSymbolValue(this->getLabel());
+        if( !value ){
+            return LogErrorV("Unknown variable name " + this->getLabel());
+        }
+//        if( value->getType()->isPointerTy() ){
+//            auto arrayPtr = context.builder.CreateLoad(value, "arrayPtr");
+//            if( arrayPtr->getType()->isArrayTy() ){
+//                cout << "(Array Type)" << endl;
+//                std::vector<Value*> indices;
+//                indices.push_back(ConstantInt::get(Type::getInt32Ty(context.llvmContext), 0, false));
+//                auto ptr = context.builder.CreateInBoundsGEP(value, indices, "arrayPtr");
+//                return ptr;
+//            }
 //        }
-//        return context.builder.CreateLoad(value, false, "");
+         return value;
+        //return value;
+
     }
     else if(primary_type==2) { //CONSTANT f ll l 什么的先不考虑 就考虑整数
 //   16进制 {HP}{H}+{IS}?			{ yylval.str = strdup(yytext); RETURN_TOKEN(CONSTANT); }  0[xX][a-fA-F0-9]+(((u|U)(l|L|ll|LL)?)|((l|L|ll|LL)(u|U)?))

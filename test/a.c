@@ -3,7 +3,11 @@ int main(){
     int b = 2;
     int c = 4;
 
-    b -= a;
-    c  = b;
-    return a;
+    if(c==4){
+        c = 1;
+    }
+    else{
+        c = 2;
+    }
+    return 0;
 }
