@@ -109,7 +109,6 @@ llvm::Value* AstSelectStmt::codegen(CodeGen &context){
      return nullptr;
 }
 
-
 llvm::Value* AstIterStmt::codegen(CodeGen &context){
     cout << "Generating iteration statement" << endl;
 
@@ -176,6 +175,7 @@ llvm::Value* AstJmpStmt::codegen(CodeGen &context){
             LogError("Cannot use break statement out of loops");
             return nullptr;
         }
+
         context.builder.CreateBr(context.currentBlock()->loopBreaks.back());
         llvm::Function *theFunction = context.builder.GetInsertBlock()->getParent();
         llvm::BasicBlock *cont_block = llvm::BasicBlock::Create(context.llvmContext, "break_cont", theFunction);

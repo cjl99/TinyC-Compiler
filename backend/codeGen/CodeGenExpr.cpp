@@ -373,7 +373,8 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
         Function * calleeF = context.theModule->getFunction(funcName);
 
         AstArgExprList* arg_list = (AstArgExprList *)this->getPtr();
-        std::vector<AstExpression *> arg_vec = arg_list->getAstExpression();
+        std::vector<AstExpression *> arg_vec;
+        if(arg_list) arg_vec = arg_list->getAstExpression();
 
         if( !calleeF ){
             LogErrorV("Function name not found");
