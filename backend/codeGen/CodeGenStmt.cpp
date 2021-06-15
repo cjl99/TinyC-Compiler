@@ -14,38 +14,43 @@ llvm::Value* AstCompoundStmt::codegen(CodeGen &context) {
 
     // stmt list part
     AstStmtList *stmtlist = this->getAstStmtList();
-
     if(stmtlist) {
         vector<AstStmt *> stmt_vec = stmtlist->getStmtList();
-        for(auto stmt: stmt_vec) {
-            int stmt_type = stmt->getType();
-            switch (stmt_type) {
-                case 1:
-                    ((AstCompoundStmt *) stmt)->codegen(context);
-                    break;
-                case 2:
-                    ((AstExprStmt *) stmt)->codegen(context);
-                    break;
-                case 3:
-                    ((AstSelectStmt *) stmt)->codegen(context);
-                    break;
-                case 4:
-                    ((AstIterStmt *) stmt)->codegen(context);
-                    break;
-                case 5:
-                    ((AstJmpStmt *) stmt)->codegen(context);
-                    break;
-            }
+        for(AstStmt *stmt: stmt_vec) {
+            stmt->codegen(context);
         }
     }
 
     return nullptr;
 }
 
+llvm::Value * AstStmt::codegen(CodeGen &context) {
+    AstNonLabelStmt *nonLabelStmt = this->getStmt();
+    int stmt_type = this->getType();
+    std::cout << "StmtType: " + to_string(stmt_type) << std::endl;
+    switch (stmt_type) {
+        case 1:
+            return ((AstCompoundStmt *) nonLabelStmt)->codegen(context);
+            break;
+        case 2:
+            return ((AstExprStmt *) nonLabelStmt)->codegen(context);
+            break;
+        case 3:
+            return ((AstSelectStmt *) nonLabelStmt)->codegen(context);
+            break;
+        case 4:
+            return ((AstIterStmt *) nonLabelStmt)->codegen(context);
+            break;
+        case 5:
+            return ((AstJmpStmt *) nonLabelStmt)->codegen(context);
+            break;
+    }
+    return nullptr;
+}
+
 llvm::Value* AstSelectStmt::codegen(CodeGen &context){
     cout << "Generating select statement" << endl;
     Value* condValue = this->getExpr()->codegen(context);
-
     // cast to boolean
     condValue = context.CastToBoolean(context, condValue);
 
@@ -57,28 +62,42 @@ llvm::Value* AstSelectStmt::codegen(CodeGen &context){
 
     // Emit Then
     context.builder.SetInsertPoint(thenBlock);
-    Value *ThenV = expr->codegen(context);
-    if (ThenV == 0) return 0;
+
+    context.pushBlock(thenBlock);
+    Value *ThenV = this->getThenClause()->codegen(context);
+    context.popBlock();
+
+    if (ThenV == nullptr) {
+        std::cout << "No Then clause" << std::endl;
+        return 0;
+    }
     context.builder.CreateBr(mergeBlock);
     // Codegen of 'Then' can change the current block, update ThenBB for the PHI.
     thenBlock = context.builder.GetInsertBlock();
 
     // Emit Else
-    TheFunction->getBasicBlockList().push_back(elseBlock);
-    context.builder.SetInsertPoint(elseBlock);
-    context.pushBlock(elseBlock);
-    Value *ElseV = b_back->codegen();
-    context.popBlock();
-    if (ElseV == 0) return 0;
-    context.builder.CreateBr(mergeBlock);
-    // Codegen of 'Else' can change the current block, update ElseBB for the PHI.
-    elseBlock = Builder.GetInsertBlock();
+    Value *ElseV = nullptr;
+    if(this->getElseClause()) {
+        theFunction->getBasicBlockList().push_back(elseBlock);
+        context.builder.SetInsertPoint(elseBlock);
+        context.pushBlock(elseBlock);
+        ElseV = this->getElseClause()->codegen(context);
+        context.popBlock();
+        if (ElseV == nullptr) {
+            std::cout << "No else clause" << std::endl;
+        }
+
+        context.builder.CreateBr(mergeBlock);
+        // Codegen of 'Else' can change the current block, update ElseBB for the PHI.
+        elseBlock = context.builder.GetInsertBlock();
+    }
+
 
 
     // Emit merge block.
-    TheFunction->getBasicBlockList().push_back(mergeBlock);
-    Builder.SetInsertPoint(mergeBlock);
-    PHINode *PN = Builder.CreatePHI(Type::getDoubleTy(getGlobalContext()), 2,
+    theFunction->getBasicBlockList().push_back(mergeBlock);
+    context.builder.SetInsertPoint(mergeBlock);
+    PHINode *PN = context.builder.CreatePHI(Type::getDoubleTy(context.llvmContext), 2,
                                     "iftmp");
 
     PN->addIncoming(ThenV, thenBlock);
@@ -99,7 +118,7 @@ llvm::Value* AstIterStmt::codegen(CodeGen &context){
     Value* condValue = this->getJudgeExpr()->codegen(context);
     if( !condValue )
         return nullptr;
-    condValue = CastToBoolean(context, condValue);
+    condValue = context.CastToBoolean(context, condValue);
 
     // fall to the block
     context.builder.CreateCondBr(condValue, block, after);
@@ -119,7 +138,7 @@ llvm::Value* AstIterStmt::codegen(CodeGen &context){
 
     // execute the again or stop
     condValue = this->getJudgeExpr()->codegen(context);
-    condValue = CastToBoolean(context, condValue);
+    condValue = context.CastToBoolean(context, condValue);
     context.builder.CreateCondBr(condValue, block, after);
 
     // insert the after block

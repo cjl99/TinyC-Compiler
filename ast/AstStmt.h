@@ -44,6 +44,8 @@ public:
     AstStmt(int type, AstNonLabelStmt* stmt);
     int getType();
     AstNonLabelStmt* getStmt();
+    virtual llvm::Value* codegen(CodeGen &context) override;
+
 };
 
 class AstStmtList: public AstNonLabelStmt {

@@ -23,7 +23,7 @@
 llvm::Value* AstDeclaration::codegen(CodeGen &context) {
     std::cout << "Generate declaration" << std::endl;
     Type* tp = context.typeSystem.getType(this->getTypeSpec()->getLabel(), 0);
-    Value* inst;
+    Value* inst = nullptr;
     AstInitDeclList *init_decl_list = this->getInitDeclList();
     if(init_decl_list) {
         std::vector < AstInitDeclarator * > init_decl_vec = init_decl_list->getInitDeclList();
@@ -33,7 +33,6 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
                 if (!decl->hasPointer()) {   // int a;
                     AstDirectDeclarator *dd = decl->getDirectDeclarator();
                     std::string name = dd->getIdentifier();
-
                     inst = context.builder.CreateAlloca(tp);
                     context.setSymbolType(name, tp);
                     context.setSymbolValue(name, inst);

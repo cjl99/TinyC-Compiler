@@ -11,7 +11,10 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
     else {
         std::cout << "Generate assignment expression" << std::endl;
         Value *L = this->getUnaryExpr()->codegen(context);
+        std::cout << "getUnaryExpr codegen" << std::endl;
+
         Value *R = this->getExpression()->codegen(context);
+
         // Operator: ">>=" "<<=" "+=" "-=" "*=" "/=" "%=" "&=" "^=" "|="
         std::string op = this->getAssignOp()->getOperator();
         // is float operation or not
@@ -30,6 +33,7 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
             else if(op=="^=") res = context.builder.CreateXor(L, R, "xor(i)tmp");
             else if(op=="<<=") res = context.builder.CreateShl(L, R, "shl(i)tmp");
             else if(op==">>=") res = context.builder.CreateAShr(L, R, "shr(i)tmp");
+            else if(op=="=") res = R;
             else res = LogErrorV("Unknown operator in assignment_expression");
         }
         else {
@@ -47,12 +51,13 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
             else if(op=="^=") res = LogErrorV("operator's type: 'double', invalid operands '^='");
             else if(op=="<<=") res = LogErrorV("operator's type: 'double', invalid operands '<<='");
             else if(op==">>=") res = LogErrorV("operator's type: 'double', invalid operands '>>='");
+            else if(op=="=") res = R;
             else res = LogErrorV("Unknown operator in assignment_expression");
         }
 
         if(res) {
             // if L is double originally, should change back to int after assignment.
-            if(!Lf) res=context.builder.CreateFPToUI(res, Type::getDoubleTy(context.llvmContext), "itmp");
+            if(!Lf) res=context.builder.CreateFPToUI(res, Type::getInt32Ty(context.llvmContext), "itmp");
             context.builder.CreateStore(res, L);
         }
         return L;
@@ -95,21 +100,21 @@ llvm::Value* AstCondiExpr::codegen(CodeGen &context) {
         thenBlock = context.builder.GetInsertBlock();
 
         // Emit Else
-        TheFunction->getBasicBlockList().push_back(elseBlock);
+        theFunction->getBasicBlockList().push_back(elseBlock);
         context.builder.SetInsertPoint(elseBlock);
         context.pushBlock(elseBlock);
-        Value *ElseV = b_back->codegen();
+        Value *ElseV = b_back->codegen(context);
         context.popBlock();
         if (ElseV == 0) return 0;
         context.builder.CreateBr(mergeBlock);
         // Codegen of 'Else' can change the current block, update ElseBB for the PHI.
-        elseBlock = Builder.GetInsertBlock();
+        elseBlock = context.builder.GetInsertBlock();
 
 
         // Emit merge block.
-        TheFunction->getBasicBlockList().push_back(mergeBlock);
+        theFunction->getBasicBlockList().push_back(mergeBlock);
         context.builder.SetInsertPoint(mergeBlock);
-        PHINode *PN = context.builder.CreatePHI(Type::getDoubleTy(getGlobalContext()), 2, "iftmp");
+        PHINode *PN = context.builder.CreatePHI(Type::getDoubleTy(context.llvmContext), 2, "iftmp");
 
         PN->addIncoming(ThenV, thenBlock);
         PN->addIncoming(ElseV, elseBlock);
@@ -160,14 +165,16 @@ llvm::Value *AstBinaryExpr::codegen(CodeGen &context) {
             L = context.builder.CreateUIToFP(L, Type::getDoubleTy(context.llvmContext), "ftmp");
         }
     }
+    std::cout<< L->getType()->getTypeID()<<std::endl;
+    std::cout<< R->getType()->getTypeID()<<std::endl;
 
     if(op=="&&") {
-        L = CastToBoolean(context, L);
-        R = CastToBoolean(context, R);
+        L = context.CastToBoolean(context, L);
+        R = context.CastToBoolean(context, R);
         return context.builder.CreateAnd(L, R, "and(i)tmp");
     } else if(op=="||") {
-        L = CastToBoolean(context, L);
-        R = CastToBoolean(context, R);
+        L = context.CastToBoolean(context, L);
+        R = context.CastToBoolean(context, R);
         return context.builder.CreateOr(L, R, "or(i)tmp");
     } else if(op=="&") {
         return isFloat ? LogErrorV("Double type has no AND operation") : context.builder.CreateAnd(L, R, "andtmp");
@@ -223,8 +230,10 @@ llvm::Value* AstCastExpr::codegen(CodeGen &context) {
 
         Value *tmp = cast_expr->codegen(context);
         Type *srcType = tmp->getType();
+        // TODO
 
-        return context.builder.CreateCast()
+        // return context.builder.CreateCast()
+        return nullptr;
     }
 
     return nullptr;
@@ -244,12 +253,14 @@ llvm::Value* AstUnaryExpr::codegen(CodeGen &context) {
             Value *tmpv = unary_expr->codegen(context);
             uint64_t num = 1;
             Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), num, true);
-            return tmpv = context.builder.CreateAdd(tmpv, t1, "++op");
-        } else if(this->op=="--") { tmpv -= 1; return tmpv;
+            context.builder.CreateStore(context.builder.CreateAdd(tmpv, t1, "++op"), tmpv);
+            return tmpv;
+        } else if(this->op=="--") { //tmpv -= 1; return tmpv;
             Value *tmpv = unary_expr->codegen(context);
             uint64_t num = 1;
             Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), num, true);
-            return tmpv = context.builder.CreateSub(tmpv, t1, "--op");
+            context.builder.CreateStore(context.builder.CreateSub(tmpv, t1, "--op"), tmpv);
+            return tmpv;
         } else { // op = % * + - ~ !
             Value *temp = unary_expr->codegen(context);
             if(op=="+") {
@@ -260,9 +271,9 @@ llvm::Value* AstUnaryExpr::codegen(CodeGen &context) {
             }
             else if(op=="!") {
                 Value *tmpv = unary_expr->codegen(context);
-                tempv = CastToBoolean(context, tempv);
+                tmpv = context.CastToBoolean(context, tmpv);
                 if(tmpv->getType()->getTypeID() == Type::IntegerTyID){
-                    return context.builder.CreateNot(tempv, "nottmp");
+                    return context.builder.CreateNot(tmpv, "nottmp");
                 }
                 else return LogErrorV("~ operator must apply to numerics");
 
@@ -307,10 +318,19 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
 
     } else if(this->op=="->") {
 
-    } else if(this->op=="++") {
-        
-    } else if(this->op=="--") {
-
+    } else if(this->op=="++") { // op++
+        Value *tmpv = this->getAstPostfixExpr()->codegen(context);
+        uint64_t num = 1;
+        Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), num, true);
+        context.builder.CreateStore(context.builder.CreateAdd(tmpv, t1, "op++"),  tmpv);
+        return context.builder.CreateSub(tmpv, t1, "1--");
+    } else if(this->op=="--") { //op--
+        std::cout << "b--1" << std::endl;
+        Value *tmpv = this->getAstPostfixExpr()->codegen(context);
+        uint64_t num = 1;
+        Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), num, true);
+        context.builder.CreateStore(context.builder.CreateSub(tmpv, t1, "op--"),  tmpv);
+        return context.builder.CreateAdd(tmpv, t1, "1++");
     }
     return nullptr;
 }
@@ -322,8 +342,11 @@ llvm::Value * AstPrimaryExpr::codegen(CodeGen &context) {
     int primary_type = this->getType();
 
     if(primary_type==1) { // IDENTIFIER -- name char *
-        this->getLabel();
-
+        return context.getSymbolValue(this->getLabel());
+//        if( !value ){
+//            return LogErrorV("Unknown variable name " + this->getLabel());
+//        }
+//        return context.builder.CreateLoad(value, false, "");
     }
     else if(primary_type==2) { //CONSTANT f ll l 什么的先不考虑 就考虑整数
 //   16进制 {HP}{H}+{IS}?			{ yylval.str = strdup(yytext); RETURN_TOKEN(CONSTANT); }  0[xX][a-fA-F0-9]+(((u|U)(l|L|ll|LL)?)|((l|L|ll|LL)(u|U)?))

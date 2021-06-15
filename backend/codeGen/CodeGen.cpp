@@ -4,7 +4,7 @@
 
 // use reference to pass value instead of extern
 //extern CodeGen* global_codegen;
-static Value* CodeGen::CastToBoolean(CodeGen& context, Value* condValue){
+Value* CodeGen::CastToBoolean(CodeGen& context, Value* condValue){
     if(condValue->getType()->getTypeID() == Type::IntegerTyID){
         condValue = context.builder.CreateIntCast(condValue, Type::getInt1Ty(context.llvmContext), true);
         return context.builder.CreateICmpNE(condValue, ConstantInt::get(Type::getInt1Ty(context.llvmContext), 0, true));
