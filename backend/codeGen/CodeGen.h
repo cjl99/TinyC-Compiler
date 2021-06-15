@@ -31,6 +31,8 @@ class CodeBlock {
 public:
     std::map<std::string, Value*> named_values;
     std::map<std::string, Type*> named_types;
+    std::map<Value*, Type*> ValueToType;
+
     Value * returnValue = nullptr;
     llvm::BasicBlock *block;
     std::vector<llvm::BasicBlock *> loopBreaks;
@@ -59,8 +61,11 @@ public:
 
     Value* getSymbolValue(std::string name) const;
     Type* getSymbolType(std::string name) const;
+    Type* getTypefromValue(Value *value) const;
     void setSymbolValue(std::string name, Value* value);
     void setSymbolType(std::string name, Type* type);
+    void setValueType(Value* value, Type* type);
+
     CodeBlock* currentBlock() const;
     void pushBlock(llvm::BasicBlock * block);
     void popBlock();

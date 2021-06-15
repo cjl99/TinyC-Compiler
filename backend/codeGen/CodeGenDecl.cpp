@@ -28,15 +28,23 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
     if(init_decl_list) {
         std::vector < AstInitDeclarator * > init_decl_vec = init_decl_list->getInitDeclList();
         for (auto init_decl : init_decl_vec) {
-            if (!init_decl->hasEqual()) { // example: int (*)a
+            // don't have initialization
+            if (!init_decl->hasEqual()) {
                 AstDeclarator *decl = init_decl->getDeclarator();
-                if (!decl->hasPointer()) {   // int a;
+                // Basic Type -- example: int a;
+                if (!decl->hasPointer()) {
+                    // Get variable name
                     AstDirectDeclarator *dd = decl->getDirectDeclarator();
                     std::string name = dd->getIdentifier();
+                    // Create a space in stack
                     inst = context.builder.CreateAlloca(tp);
+                    // Store it to our SymbolTable
                     context.setSymbolType(name, tp);
                     context.setSymbolValue(name, inst);
-                } else {  //  int *a;
+                    context.setValueType(inst, tp);
+                }
+                // Pointer Type -- example: int *a;
+                else {
 
                 }
             } else {  // example: int a=1
@@ -53,6 +61,7 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
                     // set symbol table
                     context.setSymbolType(name, tp);
                     context.setSymbolValue(name, inst);
+                    context.setValueType(inst, tp);
                     // codegen(expression)
                     Value * exp;
                     if(initializer->getExpression()) {

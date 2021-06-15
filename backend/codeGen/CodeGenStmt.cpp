@@ -25,6 +25,7 @@ llvm::Value* AstCompoundStmt::codegen(CodeGen &context) {
 }
 
 llvm::Value * AstStmt::codegen(CodeGen &context) {
+    std::cout << "Generate Statement" << std::endl;
     AstNonLabelStmt *nonLabelStmt = this->getStmt();
     int stmt_type = this->getType();
     std::cout << "StmtType: " + to_string(stmt_type) << std::endl;

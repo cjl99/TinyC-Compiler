@@ -1,12 +1,9 @@
 int main(){
-    int b = 1;
-    int c = 1 + 2;
-    if(c==2){
-        c = 1;
-        c += 1;
-    }
-    else {
-        c = 2;
-    }
-    return 0;
+    int a = 1;
+    int b = 2;
+    int c = 4;
+
+    b -= a;
+    c  = b;
+    return a;
 }

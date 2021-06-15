@@ -40,6 +40,16 @@ llvm::Type* CodeGen::getSymbolType(string name) const{
     return nullptr;
 }
 
+llvm::Type* CodeGen::getTypefromValue(Value *value) const {
+    for(auto it=code_stack.rbegin();it!=code_stack.rend();it++){
+        if((*it)->ValueToType.find(value)!=(*it)->ValueToType.end()){
+            return (*it)->ValueToType[value];
+        }
+    }
+    return nullptr;
+}
+
+
 void CodeGen::setSymbolValue(string name, Value* value){
     this->code_stack.back()->named_values[name] = value;
     return;
@@ -47,6 +57,10 @@ void CodeGen::setSymbolValue(string name, Value* value){
 
 void CodeGen::setSymbolType(string name, Type* type){
     this->code_stack.back()->named_types[name] = type;
+}
+
+void CodeGen::setValueType(llvm::Value *value, llvm::Type *type) {
+    this->code_stack.back()->ValueToType[value] = type;
 }
 
 CodeBlock* CodeGen::currentBlock() const{
