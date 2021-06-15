@@ -403,7 +403,7 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
 // primary_expression
 //: IDENTIFIER | CONSTANT | STRING_LITERAL | '(' expression ')'
 llvm::Value * AstPrimaryExpr::codegen(CodeGen &context) {
-    std::cout << "Generate primary expression" << std::endl;
+    std::cout << "Generate primary expression: " << this->getLabel() << std::endl;
 
     int primary_type = this->getType();
 
