@@ -111,18 +111,22 @@ llvm::Value* AstSelectStmt::codegen(CodeGen &context){
 
 
 llvm::Value* AstIterStmt::codegen(CodeGen &context){
+    cout << "Generating iteration statement" << endl;
+
     Function* theFunction = context.builder.GetInsertBlock()->getParent();
 
-    BasicBlock *block = BasicBlock::Create(context.llvmContext, "for_loop", theFunction);
-    BasicBlock *after = BasicBlock::Create(context.llvmContext, "for_cont", theFunction);
-    context.currentBlock()->loopBreaks.push_back(after);
+    BasicBlock *block = BasicBlock::Create(context.llvmContext, "loop", theFunction);
+    BasicBlock *after = BasicBlock::Create(context.llvmContext, "loop_cont", theFunction);
+
     // execute the initial
     if( this->getInitialExpr() )
         this->getInitialExpr()->codegen(context);
 
-    Value* condValue = this->getJudgeExpr()->codegen(context);
-    if( !condValue )
-        return nullptr;
+    Value* condValue = ConstantInt::get(Type::getInt32Ty(context.llvmContext), 1 , true);
+    if(this->getJudgeExpr()){
+        condValue = this->getJudgeExpr()->codegen(context);
+    }
+
     condValue = context.CastToBoolean(context, condValue);
 
     // fall to the block
@@ -131,26 +135,27 @@ llvm::Value* AstIterStmt::codegen(CodeGen &context){
     context.builder.SetInsertPoint(block);
 
     context.pushBlock(block);
-
     this->getBlock()->codegen(context);
-
     context.popBlock();
 
     // do increment
     if( this->getUpdateExpr() ){
+        std::cout<<"Update expression"<<std::endl;
         this->getUpdateExpr()->codegen(context);
     }
 
     // execute the again or stop
-    condValue = this->getJudgeExpr()->codegen(context);
+    condValue = ConstantInt::get(Type::getInt32Ty(context.llvmContext), 1 , true);
+    if(this->getJudgeExpr()){
+        condValue = this->getJudgeExpr()->codegen(context);
+    }
     condValue = context.CastToBoolean(context, condValue);
     context.builder.CreateCondBr(condValue, block, after);
 
     // insert the after block
-    theFunction->getBasicBlockList().push_back(after);
+    // theFunction->getBasicBlockList().push_back(after);
     context.builder.SetInsertPoint(after);
 
-    context.currentBlock()->loopBreaks.pop_back();
     return nullptr;
 }
 

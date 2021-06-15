@@ -1,6 +1,9 @@
 int main(){
-    int a = 1;
-    int b = 2;
-    int c = 4;
+    int i = 0;
+    int a = 0;
+    for(;;){
+        a++;
+    }
 
+    return 0;
 }

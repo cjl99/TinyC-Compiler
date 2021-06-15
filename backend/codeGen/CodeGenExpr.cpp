@@ -181,8 +181,8 @@ llvm::Value *AstBinaryExpr::codegen(CodeGen &context) {
     Type *LType = L->getType();
     Type *RType = R->getType();
 
-    std::cout<< LType->getTypeID() << std::endl;
-    std::cout<< RType->getTypeID() << std::endl;
+//    std::cout<< LType->getTypeID() << std::endl;
+//    std::cout<< RType->getTypeID() << std::endl;
 
     bool isFloat = false;
     if( (LType->getTypeID() == Type::DoubleTyID) || (RType->getTypeID() == Type::DoubleTyID) ){  // type upgrade

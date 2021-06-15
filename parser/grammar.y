@@ -575,7 +575,7 @@ statement
 	;
 
 expression_statement
-	: ';' {$$ = nullptr;}
+	: ';' {$$ = new AstExprStmt(nullptr);}
 	| expression ';' {$$ = new AstExprStmt($1); }
 	;
 

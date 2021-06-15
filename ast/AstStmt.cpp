@@ -85,7 +85,7 @@ AstExpression *AstIterStmt::getJudgeExpr() const{
 }
 
 AstExpression *AstIterStmt::getUpdateExpr() const{
-    return initialExpr;
+    return updateExpr;
 }
 
 AstStmt *AstIterStmt::getBlock() const{
