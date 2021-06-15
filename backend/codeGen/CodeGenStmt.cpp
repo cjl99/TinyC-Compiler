@@ -61,6 +61,10 @@ llvm::Value* AstSelectStmt::codegen(CodeGen &context){
     BasicBlock *elseBlock = BasicBlock::Create(context.llvmContext, "ifelse");
     BasicBlock *mergeBlock = BasicBlock::Create(context.llvmContext, "ifcont");
 
+    // get the outer loop
+    BasicBlock* parentLoopBreak = context.currentBlock()->loopBreak;
+    BasicBlock* parentLoopContinue = context.currentBlock()->loopContinue;
+
     if( this->getElseClause() ){
         context.builder.CreateCondBr(condValue, thenBlock, elseBlock);
     } else{
@@ -71,6 +75,8 @@ llvm::Value* AstSelectStmt::codegen(CodeGen &context){
     context.builder.SetInsertPoint(thenBlock);
 
     context.pushBlock(thenBlock);
+    context.currentBlock()->loopBreak = parentLoopBreak;
+    context.currentBlock()->loopContinue = parentLoopContinue;
     Value *ThenV = this->getThenClause()->codegen(context);
     context.popBlock();
 
@@ -90,6 +96,8 @@ llvm::Value* AstSelectStmt::codegen(CodeGen &context){
         theFunction->getBasicBlockList().push_back(elseBlock);
         context.builder.SetInsertPoint(elseBlock);
         context.pushBlock(elseBlock);
+        context.currentBlock()->loopBreak = parentLoopBreak;
+        context.currentBlock()->loopContinue = parentLoopContinue;
         ElseV = this->getElseClause()->codegen(context);
         context.popBlock();
 
@@ -97,7 +105,9 @@ llvm::Value* AstSelectStmt::codegen(CodeGen &context){
             std::cout << "No else clause" << std::endl;
         }
 
-        context.builder.CreateBr(mergeBlock);
+        if( elseBlock->getTerminator() == nullptr ){       //
+            context.builder.CreateBr(mergeBlock);
+        }
         // Codegen of 'Else' can change the current block, update ElseBB for the PHI.
         elseBlock = context.builder.GetInsertBlock();
     }
@@ -117,6 +127,7 @@ llvm::Value* AstIterStmt::codegen(CodeGen &context){
 
     BasicBlock *block = BasicBlock::Create(context.llvmContext, "loop", theFunction);
     BasicBlock *after = BasicBlock::Create(context.llvmContext, "loop_cont", theFunction);
+    BasicBlock *continue_block = llvm::BasicBlock::Create(context.llvmContext, "continue_cont", theFunction);
 
     // execute the initial
     if( this->getInitialExpr() )
@@ -126,7 +137,6 @@ llvm::Value* AstIterStmt::codegen(CodeGen &context){
     if(this->getJudgeExpr()){
         condValue = this->getJudgeExpr()->codegen(context);
     }
-
     condValue = context.CastToBoolean(context, condValue);
 
     // fall to the block
@@ -135,10 +145,14 @@ llvm::Value* AstIterStmt::codegen(CodeGen &context){
     context.builder.SetInsertPoint(block);
 
     context.pushBlock(block);
+    context.currentBlock()->loopBreak = after;
+    context.currentBlock()->loopContinue = continue_block;
     this->getBlock()->codegen(context);
     context.popBlock();
+    context.builder.CreateBr(continue_block);
 
     // do increment
+    context.builder.SetInsertPoint(continue_block);
     if( this->getUpdateExpr() ){
         std::cout<<"Update expression"<<std::endl;
         this->getUpdateExpr()->codegen(context);
@@ -155,7 +169,6 @@ llvm::Value* AstIterStmt::codegen(CodeGen &context){
     // insert the after block
     // theFunction->getBasicBlockList().push_back(after);
     context.builder.SetInsertPoint(after);
-
     return nullptr;
 }
 
@@ -169,17 +182,22 @@ llvm::Value* AstExprStmt::codegen(CodeGen &context){
 llvm::Value* AstJmpStmt::codegen(CodeGen &context){
     string type = this->getType();
     if(type=="continue"){
-        //==========Todo==============
+        std::cout<<"generate continue"<<std::endl;
+        if (context.currentBlock()->loopContinue == nullptr) {
+            LogError("Cannot use continue statement out of loops");
+            return nullptr;
+        }
+        context.builder.CreateBr(context.currentBlock()->loopContinue);
+        return nullptr;
     }
     else if(type=="break"){
-        if (context.currentBlock()->loopBreaks.empty()) {
+        std::cout<<"generate break"<<std::endl;
+        if (context.currentBlock()->loopBreak == nullptr) {
             LogError("Cannot use break statement out of loops");
             return nullptr;
         }
-        context.builder.CreateBr(context.currentBlock()->loopBreaks.back());
-        llvm::Function *theFunction = context.builder.GetInsertBlock()->getParent();
-        llvm::BasicBlock *cont_block = llvm::BasicBlock::Create(context.llvmContext, "break_cont", theFunction);
-        context.builder.SetInsertPoint(cont_block);
+        context.builder.CreateBr(context.currentBlock()->loopBreak);
+
         return nullptr;
     }
     else if(type=="return"){
