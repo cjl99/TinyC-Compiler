@@ -35,7 +35,8 @@ public:
 
     Value * returnValue = nullptr;
     llvm::BasicBlock *block;
-    std::vector<llvm::BasicBlock *> loopBreaks;
+    llvm::BasicBlock *loopBreak = nullptr;
+    llvm::BasicBlock *loopContinue = nullptr;
 
     CodeBlock(llvm::BasicBlock *block){
         this->block = block;
