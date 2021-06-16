@@ -369,8 +369,20 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
 
     std::cout << "Generate postfix expression" << std::endl;
 
-    if(this->op=="[]") {
+    if(this->op=="[]") { // a[index] array or pointer dereference
 
+        AstPrimaryExpr *primary_expr = (AstPrimaryExpr *)this->getAstPostfixExpr()->getPtr();
+        Value *index = ((AstExpression *)this->getPtr())->codegen(context);
+        std::string name = primary_expr->getLabel();
+        Value* value = context.getSymbolValue(name);
+        value = context.builder.CreateLoad(value);
+
+        cout << "Generating array index of " << name << endl;
+
+        auto ptr = context.builder.CreateInBoundsGEP(value,
+                                                     dyn_cast<llvm::ConstantInt>(index),
+                                                     "elementPtr");
+        return ptr;
     } else if(this->op=="()") {
         // Invoke Function Here
         AstPrimaryExpr *primary_expr = (AstPrimaryExpr *)this->getAstPostfixExpr()->getPtr();
@@ -421,7 +433,8 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
         context.builder.CreateStore(add1, tmpv);
         // return original value
         return inst1;
-    } else if(this->op=="--") { // var--
+    }
+    else if(this->op=="--") { // var--
         // Var value
         Value *tmpv = this->getAstPostfixExpr()->codegen(context);
         Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), 1, true);
@@ -457,13 +470,17 @@ llvm::Value * AstPrimaryExpr::codegen(CodeGen &context) {
 //   16进制 {HP}{H}+{IS}?			{ yylval.str = strdup(yytext); RETURN_TOKEN(CONSTANT); }  0[xX][a-fA-F0-9]+(((u|U)(l|L|ll|LL)?)|((l|L|ll|LL)(u|U)?))
 //   10进制 {NZ}{D}*{IS}?			{yylval.str = strdup(yytext); RETURN_TOKEN(CONSTANT); } [1-9][0-9]*
 //   8进制  "0"{O}*{IS}?			{ yylval.str = strdup(yytext); RETURN_TOKEN(CONSTANT); } 0[0-7]+
-//    {CP}?"'"(\\.|[^\\'])+"'"	{ yylval.str = strdup(yytext); RETURN_TOKEN(CONSTANT); }
+//    {CP}?"'"(\\.|[^\\'])+"'"	{ yylval.str = strdup(yytext); RETURN_TOKEN(CONSTANT); } 'a' 字符
 //    {D}+{E}{FS}?				{ yylval.str = strdup(yytext); RETURN_TOKEN(CONSTANT); }
 //    {D}*"."{D}+{E}?{FS}?		{ yylval.str = strdup(yytext); RETURN_TOKEN(CONSTANT); } [0-9]* '.' [0-9] e? (f|F|l|L)?
 //    {D}+"."{E}?{FS}?			{ yylval.str = strdup(yytext); RETURN_TOKEN(CONSTANT); }
         std::string number = this->getLabel();
         try {
             uint64_t num;
+            if(number[0]=='\''){
+                num = number[1];
+                return ConstantInt::get(Type::getInt8Ty(context.llvmContext), num, true);
+            }
             if(number[0]=='0') {
                 if(number[1]=='X' || number[1]=='x') num = stoi(number, nullptr, 16);
                 else num = stoi(number, nullptr, 8);
