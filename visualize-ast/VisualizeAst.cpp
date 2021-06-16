@@ -167,21 +167,38 @@ int VisualizeAst::visualAstDirectDeclarator(AstDirectDeclarator* astDirectDeclar
     int cid1 = addNodes("INDENTIFIER: " + astDirectDeclarator->getIdentifier());
     addEdges(pid, cid1);
 
-    for(auto it: astDirectDeclarator->getDirectDeclaratorPair()) {
-        if(it.first==1) {
-            // bugs may exists here!
-            string str = std::string((const char *)it.second);
-            addEdges(pid, addNodes("CONSTANT: " + str));
-        }
-        else if(it.first==2) {
-            addEdges(pid, addNodes("[]"));
-        }
-        else if(it.first==3) {
-            addEdges(pid, addNodes("()"));
-            int cid = visualAstIdList((AstIdList *)it.second);
-            addEdges(pid, cid);
-        }
+    std::string arraySize = "";
+    vector<int> arraySizes = astDirectDeclarator->getArraySize();
+    for(int i=0; i<arraySizes.size(); ++i) {
+        arraySize += "[";
+        if(arraySizes[i]!=-1) arraySize += to_string(arraySizes[i]);
+        arraySize += "]";
     }
+
+    int cid2 = addNodes(arraySize);
+    addEdges(pid, cid2);
+
+    vector<AstIdList *> id_list = astDirectDeclarator->getIdList();
+    for(int i=0; i<id_list.size(); ++i) {
+        int cid3 = visualAstIdList(id_list[i]);
+        addEdges(pid, cid3);
+    }
+
+//    for(auto it: astDirectDeclarator->getDirectDeclaratorPair()) {
+//        if(it.first==1) {
+//            // bugs may exists here!
+//            string str = std::string((const char *)it.second);
+//            addEdges(pid, addNodes("CONSTANT: " + str));
+//        }
+//        else if(it.first==2) {
+//            addEdges(pid, addNodes("[]"));
+//        }
+//        else if(it.first==3) {
+//            addEdges(pid, addNodes("()"));
+//            int cid = visualAstIdList((AstIdList *)it.second);
+//            addEdges(pid, cid);
+//        }
+//    }
     return pid;
 }
 

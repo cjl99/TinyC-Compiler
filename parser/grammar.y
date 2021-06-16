@@ -235,15 +235,15 @@ direct_declarator
 		$$ = new AstDirectDeclarator($1);
 	}
 	| direct_declarator '[' CONSTANT ']' {
-		$1->addToDirectDecl(1, $3);
+		$1->addArraySize($3);
 		$$ = $1;
 	}
 	| direct_declarator '[' ']' {
-		$$->addToDirectDecl(2, nullptr);
+		$$->addArraySize("-1");
 		$$ = $1;
 	}
 	| direct_declarator '(' identifier_list ')' {
-		$1->addToDirectDecl(3, $3);
+		$1->addIdList($3);
 		$$ = $1;
 	}
 	;

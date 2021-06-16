@@ -91,15 +91,23 @@ AstDirectDeclarator::AstDirectDeclarator(std::string identifier)
 {
     this->identifier = identifier;
 }
+void AstDirectDeclarator::addArraySize(std::string size) {
+    int num = stoi(size, nullptr, 10);
+    this->arraySize.push_back(num);
+}
+void AstDirectDeclarator::addIdList(AstIdList *id_list) {
+    this->idList.push_back(id_list);
+}
+std::vector<int>& AstDirectDeclarator::getArraySize() {
+    return this->arraySize;
+}
+std::vector<AstIdList *>& AstDirectDeclarator::getIdList() {
+    return this->idList;
+}
 std::string AstDirectDeclarator::getIdentifier() {
     return this->identifier;
 }
-std::vector<std::pair<int, void *>> & AstDirectDeclarator::getDirectDeclaratorPair() {
-    return this->DirectDeclarator_Pair;
-}
-void AstDirectDeclarator::addToDirectDecl(int type, void *ptr) {
-    this->DirectDeclarator_Pair.push_back(std::make_pair(type, ptr));
-}
+
 
 // AstPointer
 AstPointer::AstPointer()
