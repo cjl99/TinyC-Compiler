@@ -373,6 +373,10 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
 
         AstPrimaryExpr *primary_expr = (AstPrimaryExpr *)this->getAstPostfixExpr()->getPtr();
         Value *index = ((AstExpression *)this->getPtr())->codegen(context);
+        if(index->getType()->getTypeID()==Type::PointerTyID){
+            index = context.builder.CreateLoad(index);
+        }
+
         std::string name = primary_expr->getLabel();
         Value* value = context.getSymbolValue(name);
         value = context.builder.CreateLoad(value);
