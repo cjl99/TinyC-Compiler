@@ -1,8 +1,8 @@
 extern int printf(char* format);
 int main(){
     char *str ="abc";
-    int i = 0;
-    printf("%c\n", str[1]);
+    int i = 2;
+    printf("%c\n", str[i]);
 
     return 0;
 }

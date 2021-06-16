@@ -370,9 +370,9 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
     std::cout << "Generate postfix expression" << std::endl;
 
     if(this->op=="[]") { // a[index] array or pointer dereference
-
         AstPrimaryExpr *primary_expr = (AstPrimaryExpr *)this->getAstPostfixExpr()->getPtr();
         Value *index = ((AstExpression *)this->getPtr())->codegen(context);
+
         if(index->getType()->getTypeID()==Type::PointerTyID){
             index = context.builder.CreateLoad(index);
         }
@@ -382,10 +382,8 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
         value = context.builder.CreateLoad(value);
 
         cout << "Generating array index of " << name << endl;
-
-        auto ptr = context.builder.CreateInBoundsGEP(value,
-                                                     dyn_cast<llvm::ConstantInt>(index),
-                                                     "elementPtr");
+        llvm::SmallVector<llvm::Value *, 1> indexes = {index}; // ArrayRef<Value *>
+        auto ptr = context.builder.CreateInBoundsGEP(value, indexes, "elementPtr");
         return ptr;
     } else if(this->op=="()") {
         // Invoke Function Here
