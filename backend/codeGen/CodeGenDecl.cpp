@@ -42,10 +42,20 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
                     context.setSymbolType(name, tp);
                     context.setSymbolValue(name, inst);
                     context.setValueType(inst, tp);
+
                 }
                 // Pointer Type -- example: int *a;
                 else {
-
+                    AstDirectDeclarator *dd = decl->getDirectDeclarator();
+                    std::string name = dd->getIdentifier();
+                    AstPointer* pointer = decl->getPointer();
+                    tp = context.typeSystem.getType(this->getTypeSpec()->getLabel(), pointer->getStarNum());
+                    // Create a space in stack
+                    inst = context.builder.CreateAlloca(tp);
+                    // Store it to our SymbolTable
+                    context.setSymbolType(name, tp);
+                    context.setSymbolValue(name, inst);
+                    context.setValueType(inst, tp);
                 }
             } else {  // example: int a=1
                 AstDeclarator *decl = init_decl->getDeclarator();

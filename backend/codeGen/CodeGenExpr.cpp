@@ -14,13 +14,16 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
         Value *L = this->getUnaryExpr()->codegen(context);
         if(L==nullptr) return LogErrorV("Error in assignment: rhs value is nullptr");
         Type *LType = context.getTypefromValue(L);
+        if(LType== nullptr){
+            LType = L->getType();
+        }
 
         Value *R = this->getExpression()->codegen(context);
         if(R==nullptr) return LogErrorV("Error in assignment: rhs value is nullptr");
         Type *RType = R->getType();
 
         //Value *L = context.builder.CreateLoad(Ltmp);
-        if(RType->getTypeID()==Type::PointerTyID)
+        if(RType->getTypeID()==Type::PointerTyID && LType->getTypeID()!=Type::PointerTyID)
             R = context.builder.CreateLoad(R);
 
         // Operator: ">>=" "<<=" "+=" "-=" "*=" "/=" "%=" "&=" "^=" "|=" "="
@@ -67,7 +70,7 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
         if(res) {
             // if L is int and R is double originally, should change back to int after assignment.
             if(!Lf && Rf) res=context.builder.CreateFPToUI(res, Type::getInt32Ty(context.llvmContext), "itmp");
-            if(res->getType()->getTypeID() == Type::PointerTyID) {
+            if(res->getType()->getTypeID() == Type::PointerTyID &&  LType->getTypeID()!=Type::PointerTyID) {
                 res = context.builder.CreateLoad(res);
             }
             context.builder.CreateStore(res, L);
@@ -311,7 +314,7 @@ llvm::Value* AstUnaryExpr::codegen(CodeGen &context) {
             context.builder.CreateStore(add1, tmpv);
             // return value
             return tmpv;
-        } else { // op = % * + - ~ !
+        } else { // op = & * + - ~ !
             Value *temp = unary_expr->codegen(context);
             if(op=="+") {
                 return temp;
@@ -335,8 +338,17 @@ llvm::Value* AstUnaryExpr::codegen(CodeGen &context) {
                 }
                 else return LogErrorV("~ operator must apply to integer");
             }
-            else if(op=="%") {
-                return LogErrorV("Unknown % operator");
+            else if(op=="&") { //int *p = &a
+                // return value is already pointer which points to the address
+                return unary_expr->codegen(context);
+            }
+            else if(op=="*"){ // *p = 1;
+                // get the pointer's address
+                Value *tmpv = unary_expr->codegen(context);
+                // get the base type address
+                tmpv = context.builder.CreateLoad(tmpv);
+
+                return tmpv;
             }
         }
     }
@@ -379,11 +391,11 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
         if( !calleeF ){
             LogErrorV("Function name not found");
         }
-        if( calleeF->arg_size() != arg_vec.size() ){
-            LogErrorV("Function arguments size not match, calleeF=" + std::to_string(calleeF->size()) +
-                        ", this->arguments=" + std::to_string(arg_vec.size())
-                        );
-        }
+//        if( calleeF->arg_size() != arg_vec.size() ){
+//            LogErrorV("Function arguments size not match, calleeF=" + std::to_string(calleeF->size()) +
+//                        ", this->arguments=" + std::to_string(arg_vec.size())
+//                        );
+//        }
 
         std::vector<Value*> argsv;
         for(auto it=arg_vec.begin(); it!=arg_vec.end(); it++){
@@ -441,19 +453,7 @@ llvm::Value * AstPrimaryExpr::codegen(CodeGen &context) {
         if( !value ){
             return LogErrorV("Unknown variable name " + this->getLabel());
         }
-//        if( value->getType()->isPointerTy() ){
-//            auto arrayPtr = context.builder.CreateLoad(value, "arrayPtr");
-//            if( arrayPtr->getType()->isArrayTy() ){
-//                cout << "(Array Type)" << endl;
-//                std::vector<Value*> indices;
-//                indices.push_back(ConstantInt::get(Type::getInt32Ty(context.llvmContext), 0, false));
-//                auto ptr = context.builder.CreateInBoundsGEP(value, indices, "arrayPtr");
-//                return ptr;
-//            }
-//        }
          return value;
-        //return value;
-
     }
     else if(primary_type==2) { //CONSTANT f ll l 什么的先不考虑 就考虑整数
 //   16进制 {HP}{H}+{IS}?			{ yylval.str = strdup(yytext); RETURN_TOKEN(CONSTANT); }  0[xX][a-fA-F0-9]+(((u|U)(l|L|ll|LL)?)|((l|L|ll|LL)(u|U)?))
@@ -485,7 +485,7 @@ llvm::Value * AstPrimaryExpr::codegen(CodeGen &context) {
         }
     }
     else if(primary_type==3) { // STRING_LITERAL ""
-
+        return context.builder.CreateGlobalString(this->getLabel(), "string");
     }
     else if(primary_type==4) { // (expression)
         return this->getExpression()->codegen(context);

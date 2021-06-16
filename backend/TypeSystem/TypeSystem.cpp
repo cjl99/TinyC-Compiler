@@ -61,14 +61,19 @@ Type *TypeSystem::getBuiltInType(string specifier) {
 
 // =============Todo=======================
 Type* TypeSystem::getType(string specifiers, int ptrLevel){
-    if(getBuiltInType(specifiers)!= nullptr)
+    if(getBuiltInType(specifiers)!= nullptr && ptrLevel==0)
         return getBuiltInType(specifiers);
 //    if(getStructType(specifiers)!= nullptr){
 //        return getStructType(specifiers);
 //    }
-//    if(specifiers.find("*") != std::string::npos){
-//
-//    }
+    else if(getBuiltInType(specifiers)!= nullptr && ptrLevel!=0){
+        Type *pointeeTpye = getBuiltInType(specifiers);
+        while(ptrLevel>0){
+            pointeeTpye = PointerType::get(pointeeTpye, 0);
+            ptrLevel--;
+        }
+        return pointeeTpye;
+    }
 //    if(specifiers.find("[") != std::string::npos){
 //
 //    }
