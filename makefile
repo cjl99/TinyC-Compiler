@@ -3,7 +3,7 @@ LLVM_LINK_FLAGS = `llvm-config --ldflags --libs --system-libs`
 LLVM_COMPILE_FLAGS = `llvm-config --cxxflags`
 FLAG_C_VERSION = -std=c++11
 
-.PHONY:all
+.PHONY: test
 SOURCE = $(wildcard ./ast/*.cpp)
 OBJS = $(patsubst %.cpp,%.o,$(SOURCE))
 SOURCE2 = $(wildcard ./visualize-ast/*.cpp)
@@ -60,6 +60,11 @@ $(OBJS_TYPESYS) : $(SOURCE_TYPESYS)
 $(OBJS_OBJGEN) : $(SOURCE_OBJGEN)
 	make -C ./backend/ObjGen
 
+test: ./test/a.c
+	./res test/a.c
+	g++ output.o -o test1
+	./test1
+
 graph:
 	./res test/quicksort.c
 	dot AstGraph.dot -T jpg -o graph.jpg
@@ -77,4 +82,5 @@ clean:
 	rm -rf *.dot *.jpg
 	rm -rf *.o
 	rm -rf res
+	rm -rf test1
 	

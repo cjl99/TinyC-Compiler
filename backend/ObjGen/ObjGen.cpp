@@ -51,17 +51,21 @@ void ObjGen(CodeGen & context, const string& filename){
 
     std::error_code EC;
     raw_fd_ostream dest(filename.c_str(), EC, sys::fs::F_None);
-//    raw_fd_ostream dest(filename.c_str(), EC, sys::fs::F_None);
+    if (EC) {
+        errs() << "Could not open file: " << EC.message();
+        return;
+    }
 //    formatted_raw_ostream formattedRawOstream(dest);
 
     legacy::PassManager pass;
 
-//    auto fileType = TargetMachine::CGFT_ObjectFile;
-//
-//    if( theTargetMachine->addPassesToEmitFile(pass, dest, fileType) ){
-//        errs() << "theTargetMachine can't emit a file of this type";
-//        return;
-//    }
+    auto fileType = CGFT_ObjectFile;
+//    dPassesToEmitFile(PassManagerBase &, raw_pwrite_stream &,
+//                      raw_pwrite_stream *, CodeGenFileType,
+    if( theTargetMachine->addPassesToEmitFile(pass, dest, nullptr, fileType) ){
+        errs() << "theTargetMachine can't emit a file of this type";
+        return;
+    }
 
     pass.run(*context.theModule.get());
     dest.flush();

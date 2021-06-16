@@ -97,7 +97,7 @@ void CodeGen::generateCode(AstProgram* root) {
     Value* retValue = root->codegen(*this);
     popBlock();
 
-    cout << "Code generate success" << endl;
+    cout << "Code generate success\n" << endl;
 
     llvm::legacy::PassManager passManager;
     passManager.add(createPrintModulePass(outs()));

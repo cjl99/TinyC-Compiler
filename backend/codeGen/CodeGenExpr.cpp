@@ -1,4 +1,3 @@
-//==========Todo==============
 #include "../../ast/AstExpr.h"
 #include "CodeGen.h"
 
@@ -14,17 +13,19 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
         Value *L = this->getUnaryExpr()->codegen(context);
         if(L==nullptr) return LogErrorV("Error in assignment: rhs value is nullptr");
         Type *LType = context.getTypefromValue(L);
-        if(LType== nullptr){
-            LType = L->getType();
-        }
+        if(LType==nullptr) LType = L->getType();
 
         Value *R = this->getExpression()->codegen(context);
         if(R==nullptr) return LogErrorV("Error in assignment: rhs value is nullptr");
         Type *RType = R->getType();
 
         //Value *L = context.builder.CreateLoad(Ltmp);
-        if(RType->getTypeID()==Type::PointerTyID && LType->getTypeID()!=Type::PointerTyID)
+        // if(RType->getTypeID()==Type::PointerTyID && LType->getTypeID()!=Type::PointerTyID)
+        // std::cout << "RTYPE: " << RType->getTypeID() << std::endl;
+        if(RType->getTypeID()==Type::PointerTyID) {
+            std::cout << "Generate expr: typeid is pointer" << std::endl;
             R = context.builder.CreateLoad(R);
+        }
 
         // Operator: ">>=" "<<=" "+=" "-=" "*=" "/=" "%=" "&=" "^=" "|=" "="
         std::string op = this->getAssignOp()->getOperator();
@@ -70,9 +71,10 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
         if(res) {
             // if L is int and R is double originally, should change back to int after assignment.
             if(!Lf && Rf) res=context.builder.CreateFPToUI(res, Type::getInt32Ty(context.llvmContext), "itmp");
-            if(res->getType()->getTypeID() == Type::PointerTyID &&  LType->getTypeID()!=Type::PointerTyID) {
-                res = context.builder.CreateLoad(res);
-            }
+//            if(res->getType()->getTypeID() == Type::PointerTyID) {
+//
+//            }
+            // res = context.builder.CreateLoad(res);
             context.builder.CreateStore(res, L);
         }
         return L;
@@ -399,7 +401,11 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
 
         std::vector<Value*> argsv;
         for(auto it=arg_vec.begin(); it!=arg_vec.end(); it++){
-            argsv.push_back((*it)->codegen(context));
+            Value *tmp = (*it)->codegen(context);
+            if(tmp->getType()->getTypeID()==Type::PointerTyID ) {
+                tmp = context.builder.CreateLoad(tmp);
+            }
+            argsv.push_back(tmp);
             if( !argsv.back() ){        // if any argument codegen fail
                 LogErrorV("Error in function call: func args error");
                 return nullptr;
@@ -475,17 +481,23 @@ llvm::Value * AstPrimaryExpr::codegen(CodeGen &context) {
             return ConstantInt::get(Type::getInt32Ty(context.llvmContext), num, true);
         }
         catch (std::invalid_argument &) {
-            std::cout << "Invalid_argument" << std::endl;
+            return LogErrorV( "Invalid_argument" );
         }
         catch (std::out_of_range &) {
-            std::cout << "Number out of range" << std::endl;
+            return LogErrorV( "Number out of range" );
         }
         catch (...) {
-            std::cout << "Something else error" << std::endl;
+            return LogErrorV( "Something else error" );
         }
+
     }
     else if(primary_type==3) { // STRING_LITERAL ""
-        return context.builder.CreateGlobalString(this->getLabel(), "string");
+        std::cout << "Generate STRING_LITERAL: " << this->getLabel() << std::endl;
+        Type *tp = context.typeSystem.getType("char", 1); // tp is char * now
+        Value *tmp = context.builder.CreateAlloca(tp);
+        Value *str = context.builder.CreateGlobalString(this->getLabel(), "string");
+        context.builder.CreateStore(str, tmp);
+        return tmp;
     }
     else if(primary_type==4) { // (expression)
         return this->getExpression()->codegen(context);

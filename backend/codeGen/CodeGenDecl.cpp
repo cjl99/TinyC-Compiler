@@ -156,6 +156,9 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
                 // context.typeSystem.cast(exp, context.typeSystem.getVarType(dstTypeStr), context.currentBlock());
 
                 // create store
+                if(exp->getType()->getTypeID()==Type::PointerTyID) {
+                    exp = context.builder.CreateLoad(exp);
+                }
                 context.builder.CreateStore(exp, inst);
             }
         }
