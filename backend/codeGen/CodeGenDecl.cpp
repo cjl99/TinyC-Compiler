@@ -126,24 +126,37 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
                         context.setSymbolType(name, tp);
                         context.setSymbolValue(name, inst);
                         context.setValueType(inst, tp);
-
-                        // codegen(expression)
-                        Value *exp;
-                        // TODO 类型检查
-                        if (initializer->getExpression()) {
-                            exp = initializer->getExpression()->codegen(context);
-                        } else if (initializer->getInitList()) {
-                            exp = initializer->getInitList()->codegen(context);
-                        } else {
-                            std::cout << "Error in initializer: no child!" << std::endl;
-                        }
-                        // cast to correct type
-                        // context.typeSystem.cast(exp, context.typeSystem.getVarType(dstTypeStr), context.currentBlock());
-
-                        // create store
-                        context.builder.CreateStore(exp, inst);
                     }
+
                 }
+                else{ // char *str = "abc";
+                    AstDirectDeclarator *dd = decl->getDirectDeclarator();
+                    std::string name = dd->getIdentifier();
+                    AstPointer* pointer = decl->getPointer();
+                    tp = context.typeSystem.getType(this->getTypeSpec()->getLabel(), pointer->getStarNum());
+                    // Create a space in stack
+                    inst = context.builder.CreateAlloca(tp);
+                    // Store it to our SymbolTable
+                    context.setSymbolType(name, tp);
+                    context.setSymbolValue(name, inst);
+                    context.setValueType(inst, tp);
+                }
+
+                // codegen(expression)
+                Value *exp;
+                // TODO 类型检查
+                if (initializer->getExpression()) {
+                    exp = initializer->getExpression()->codegen(context);
+                } else if (initializer->getInitList()) {
+                    exp = initializer->getInitList()->codegen(context);
+                } else {
+                    std::cout << "Error in initializer: no child!" << std::endl;
+                }
+                // cast to correct type
+                // context.typeSystem.cast(exp, context.typeSystem.getVarType(dstTypeStr), context.currentBlock());
+
+                // create store
+                context.builder.CreateStore(exp, inst);
             }
         }
     }
