@@ -8,86 +8,79 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
         return this->astCondiExpr->codegen(context);
     }
     else {
-        std::cout << "Generate assignment expression" << std::endl;
-
-        Value *L = this->getUnaryExpr()->codegen(context);
-        if(L==nullptr) return LogErrorV("Error in assignment: rhs value is nullptr");
-        Type *LType = context.getTypefromValue(L);
-        if(LType==nullptr) LType = L->getType();
-
-        Value *R = this->getExpression()->codegen(context);
-        if(R==nullptr) return LogErrorV("Error in assignment: rhs value is nullptr");
-        Type *RType = R->getType();
-
-        //Value *L = context.builder.CreateLoad(Ltmp);
-        // if(RType->getTypeID()==Type::PointerTyID && LType->getTypeID()!=Type::PointerTyID)
-        // std::cout << "RTYPE: " << RType->getTypeID() << std::endl;
-        if(RType->getTypeID()==Type::PointerTyID) {
-            std::cout << "Generate expr: typeid is pointer" << std::endl;
-            R = context.builder.CreateLoad(R);
-        }
-
         // Operator: ">>=" "<<=" "+=" "-=" "*=" "/=" "%=" "&=" "^=" "|=" "="
         std::string op = this->getAssignOp()->getOperator();
-        // is float operation or not
-        bool Lf = LType->getTypeID() == Type::DoubleTyID;
-        bool Rf = RType->getTypeID() == Type::DoubleTyID;
+        std::cout << "Generate assignment expression... op is: " << op << std::endl;
 
-        Value *res;
+        Value *L = this->getUnaryExpr()->codegen(context);
+//        if(L==nullptr) return LogErrorV("Error in assignment: rhs value is nullptr");
+//        Type *LType = L->getType();
 
-        if(!Lf && !Rf) {
-            if(op=="+=") res = context.builder.CreateAdd(L, R, "assign.add");
-            else if(op=="-=") res = context.builder.CreateSub(L, R, "assign.sub");
-            else if(op=="*=") res = context.builder.CreateMul(L, R, "mul(i)tmp");
-            else if(op=="/=") res = context.builder.CreateSDiv(L, R, "div(i)tmp");
-            else if(op=="%=") res = LogErrorV("LLVM don't have mod operation: QAQ");  //TODO Mod Op Later
-            else if(op=="&=") res = context.builder.CreateAnd(L, R, "and(i)tmp");
-            else if(op=="|=") res = context.builder.CreateOr(L, R, "or(i)tmp");
-            else if(op=="^=") res = context.builder.CreateXor(L, R, "xor(i)tmp");
-            else if(op=="<<=") res = context.builder.CreateShl(L, R, "shl(i)tmp");
-            else if(op==">>=") res = context.builder.CreateAShr(L, R, "shr(i)tmp");
-            else if(op=="=") res = R;
-            else res = LogErrorV("Unknown operator in assignment_expression");
+        Value *R = this->getExpression()->codegen(context);
+//        if(R==nullptr) return LogErrorV("Error in assignment: rhs value is nullptr");
+//        Type *RType = R->getType();
+
+        std::cout << "lhs type: " << L->getType()->getTypeID() << std::endl;
+        std::cout << "rhs type: " << R->getType()->getTypeID() << std::endl;
+
+        if(op=="=") {
+            if(R->getType()->isPointerTy()) R=context.builder.CreateLoad(R);
+            context.builder.CreateStore(R, L);
         }
         else {
-            // change L & R to double
-            if(!Lf) L = context.builder.CreateUIToFP(L, Type::getDoubleTy(context.llvmContext), "ftmpL");
-            if(!Rf) R = context.builder.CreateUIToFP(R, Type::getDoubleTy(context.llvmContext), "ftmpR");
+            Value *res;
+            Value *Ltmp = L;
+            if( L->getType()->isPointerTy() ) L = context.builder.CreateLoad(L);
+            if( R->getType()->isPointerTy() ) R = context.builder.CreateLoad(R);
+            // is float operation or not
+            Type *LType = L->getType();
+            Type *RType = R->getType();
 
-            if(op=="+=") res = context.builder.CreateFAdd(L, R, "add(f)tmp");
-            else if(op=="-=") res = context.builder.CreateFSub(L, R, "sub(f)tmp");
-            else if(op=="*=") res = context.builder.CreateFMul(L, R, "mul(f)tmp");
-            else if(op=="/=") res = context.builder.CreateFDiv(L, R, "div(f)tmp");
-            else if(op=="%=") res = LogErrorV("operator's type: 'double', invalid operands '%='");
-            else if(op=="&=") res = LogErrorV("operator's type: 'double', invalid operands '&='");
-            else if(op=="|=") res = LogErrorV("operator's type: 'double', invalid operands '|='");
-            else if(op=="^=") res = LogErrorV("operator's type: 'double', invalid operands '^='");
-            else if(op=="<<=") res = LogErrorV("operator's type: 'double', invalid operands '<<='");
-            else if(op==">>=") res = LogErrorV("operator's type: 'double', invalid operands '>>='");
-            else if(op=="=") res = R;
-            else res = LogErrorV("Unknown operator in assignment_expression");
-        }
+            bool Lf = LType->isDoubleTy();
+            bool Rf = RType->isDoubleTy();
 
-        if(res) {
-            // if L is int and R is double originally, should change back to int after assignment.
-            if(!Lf && Rf) res=context.builder.CreateFPToUI(res, Type::getInt32Ty(context.llvmContext), "itmp");
-//            if(res->getType()->getTypeID() == Type::PointerTyID) {
-//
-//            }
-            // res = context.builder.CreateLoad(res);
-            context.builder.CreateStore(res, L);
+            if (!Lf && !Rf) {
+                if (op == "+=") res = context.builder.CreateAdd(L, R, "assign.add");
+                else if (op == "-=") res = context.builder.CreateSub(L, R, "assign.sub");
+                else if (op == "*=") res = context.builder.CreateMul(L, R, "mul(i)tmp");
+                else if (op == "/=") res = context.builder.CreateSDiv(L, R, "div(i)tmp");
+                else if (op == "%=") res = LogErrorV("LLVM don't have mod operation: QAQ");  //TODO Mod Opeartion
+                else if (op == "&=") res = context.builder.CreateAnd(L, R, "and(i)tmp");
+                else if (op == "|=") res = context.builder.CreateOr(L, R, "or(i)tmp");
+                else if (op == "^=") res = context.builder.CreateXor(L, R, "xor(i)tmp");
+                else if (op == "<<=") res = context.builder.CreateShl(L, R, "shl(i)tmp");
+                else if (op == ">>=") res = context.builder.CreateAShr(L, R, "shr(i)tmp");
+                else res = LogErrorV("Unknown operator in assignment_expression");
+            } else {
+                // change L & R to double
+                if (!Lf) L = context.builder.CreateUIToFP(L, Type::getDoubleTy(context.llvmContext), "ftmpL");
+                if (!Rf) R = context.builder.CreateUIToFP(R, Type::getDoubleTy(context.llvmContext), "ftmpR");
+
+                if (op == "+=") res = context.builder.CreateFAdd(L, R, "add(f)tmp");
+                else if (op == "-=") res = context.builder.CreateFSub(L, R, "sub(f)tmp");
+                else if (op == "*=") res = context.builder.CreateFMul(L, R, "mul(f)tmp");
+                else if (op == "/=") res = context.builder.CreateFDiv(L, R, "div(f)tmp");
+                else if (op == "%=") res = LogErrorV("operator's type: 'double', invalid operands '%='");
+                else if (op == "&=") res = LogErrorV("operator's type: 'double', invalid operands '&='");
+                else if (op == "|=") res = LogErrorV("operator's type: 'double', invalid operands '|='");
+                else if (op == "^=") res = LogErrorV("operator's type: 'double', invalid operands '^='");
+                else if (op == "<<=") res = LogErrorV("operator's type: 'double', invalid operands '<<='");
+                else if (op == ">>=") res = LogErrorV("operator's type: 'double', invalid operands '>>='");
+                else res = LogErrorV("Unknown operator in assignment_expression");
+            }
+            if(res) {
+                // if L is int and R is double originally, should change back to int after assignment.
+                if(!Lf && Rf) res=context.builder.CreateFPToUI(res, Type::getInt32Ty(context.llvmContext), "itmp");
+                context.builder.CreateStore(res, Ltmp);
+            }
         }
         return L;
     }
-
-    return nullptr;
 }
 
 
 // conditional_expression :
 llvm::Value* AstCondiExpr::codegen(CodeGen &context) {
-
-
     if(!this->isExpand()) { // binary_expression
         return this->binaryExpr_back->codegen(context);
     }
@@ -173,7 +166,6 @@ llvm::Value *AstBinaryExpr::codegen(CodeGen &context) {
     }
     // binary operation
     std::cout << "Generate binary expression" << std::endl;
-
 
     Value *L = this->front_expr->codegen(context);
     Value *R = this->back_expr->codegen(context);

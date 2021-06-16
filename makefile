@@ -80,7 +80,7 @@ clean:
 
 	rm -rf y.tab.cpp y.tab.hpp lex.yy.cpp
 	rm -rf *.dot *.jpg
-	rm -rf *.o
+	rm -rf *.o *.out
 	rm -rf res
 	rm -rf test1
 	
