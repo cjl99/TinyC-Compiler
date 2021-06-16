@@ -97,13 +97,16 @@ private:
 class AstDirectDeclarator: public AstDecl {
 public:
     AstDirectDeclarator(std::string identifier);
-    void addToDirectDecl(int type, void *ptr);
-    std::vector<std::pair<int, void *> >& getDirectDeclaratorPair();
     std::string getIdentifier();
+    void addArraySize(std::string size);
+    void addIdList(AstIdList *id_list);
+    std::vector<int>& getArraySize();
+    std::vector<AstIdList *>& getIdList();
 
 private:
     std::string identifier;
-    std::vector<std::pair<int, void *> > DirectDeclarator_Pair;
+    std::vector<AstIdList *> idList;
+    std::vector<int> arraySize;
 };
 
 class AstPointer: public AstDecl{
