@@ -1,8 +1,6 @@
+extern int printf(char* format);
 int main(){
-    int i = 0;
-    int *pi;
-    pi = &i;
-    *pi = 2;
-
+    int a = 1;
+    printf("%d", a);
     return 0;
 }

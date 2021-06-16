@@ -176,7 +176,10 @@ AstPrimaryExpr::AstPrimaryExpr(int type, std::string label)
 : AstExpr("primary_expression")
 {
     this->type = type;
+    if(label[0]=='\"' && label[label.length()-1]=='\"')
+        label = label.substr(1,label.length()-2);
     this->label = label;
+
 }
 AstPrimaryExpr::AstPrimaryExpr(int type, AstExpression *astExpression)
 : AstExpr("primary_expression")
