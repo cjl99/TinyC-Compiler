@@ -7,14 +7,9 @@ extern int printf(char* format);
 int main(){
     int a[10];
     int *b = a;
-//    a[0] = 1;
-
-//    if(k==a[0]) {
-//        printf("%d", a[0]);
-//    }
-//a = 2;
     a[0] = 3;
-    printf("%d", b[0]);
+    b[0] = 2;
+    printf("%p %p", a, b);
 
     return 0;
 }
