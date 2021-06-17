@@ -66,6 +66,7 @@ public:
     void setSymbolValue(std::string name, Value* value);
     void setSymbolType(std::string name, Type* type);
     void setValueType(Value* value, Type* type);
+    bool isIdentifier(Value* value);
 
     CodeBlock* currentBlock() const;
     void pushBlock(llvm::BasicBlock * block);

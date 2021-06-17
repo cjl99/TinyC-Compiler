@@ -7,16 +7,8 @@ extern int printf(char* format);
 int main(){
     int a[10];
     int *pa;
-
-    a[0] = 11;
-
-    pa = &a[0];
-
-    *pa = 2;
-
-//    printf("%d ", pa[1]);
-    printf("%d ", a[0]);
-    printf("%d ", pa[0]);
-
+    a[0] = 1;
+//    printf("%d ", a);
+//    printf("%d ", b);
     return 0;
 }

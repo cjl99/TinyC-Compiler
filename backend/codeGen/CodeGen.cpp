@@ -49,7 +49,9 @@ llvm::Type* CodeGen::getTypefromValue(Value *value) const {
     return nullptr;
 }
 
-
+bool CodeGen::isIdentifier(Value* value){
+    return getTypefromValue(value)!= nullptr;
+}
 void CodeGen::setSymbolValue(string name, Value* value){
     this->code_stack.back()->named_values[name] = value;
     return;

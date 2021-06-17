@@ -27,114 +27,58 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
             Value* inst = nullptr;
 
             // don't have initialization
-            if (!hasInitializer) {
-
-                if(isPointerTy) {
-                    int ptrLevel = decl->getPointer()->getStarNum();
-                    tp = context.typeSystem.getType(varType, ptrLevel);
-                }
-                else if(isArrayTy){
-                    vector<int> arraySize = dd->getArraySize();
-                    int totalSize = 1;
-                    for(int i=0; i<arraySize.size(); ++i) {
-                        totalSize *= arraySize[i];
-                    }
-                    if(totalSize<0) {//  int a[]
-                        tp = context.typeSystem.getType(varType, 1);
-                    }
-                    else{
-                        tp = context.typeSystem.getType(varType, 0, totalSize);
-                    }
-                }
-                else {  // not vector -- example: a;
-                    tp = context.typeSystem.getType(varType);
-                }
-
-                // Create a space in stack
-                inst = context.builder.CreateAlloca(tp);
-                // Store inst to our SymbolTable
-                context.setSymbolType(varName, tp);
-                context.setSymbolValue(varName, inst);
-                context.setValueType(inst, tp);
-
+            if(isPointerTy) {
+                int ptrLevel = decl->getPointer()->getStarNum();
+                tp = context.typeSystem.getType(varType, ptrLevel);
             }
+            else if(isArrayTy){
+                vector<int> arraySize = dd->getArraySize();
+                int totalSize = 1;
+                for(int i=0; i<arraySize.size(); ++i) {
+                    totalSize *= arraySize[i];
+                }
+                if(totalSize<0) {//  int a[]
+                    tp = context.typeSystem.getType(varType, 1);
+                }
+                else{
+                    tp = context.typeSystem.getType(varType, 0, totalSize);
+                }
+            }
+            else {  // not vector -- example: a;
+                tp = context.typeSystem.getType(varType);
+            }
+
+            // Create a space in stack
+            inst = context.builder.CreateAlloca(tp);
+            // Store inst to our SymbolTable
+            context.setSymbolType(varName, tp);
+            context.setSymbolValue(varName, inst);
+            context.setValueType(inst, tp);
+
             // have initialization in declaration
-//            else {  // example: int a=1; | int a[5] = {1,2,3,4,5};
-//                AstInitializer *initializer = init_decl->getInitializer();
-//                // initializer : expression | '{' initializer_list '}'  | '{' initializer_list ',' '}'
-//                if(!decl->hasPointer()) {
-//                    AstDirectDeclarator *dd = decl->getDirectDeclarator();
-//                    std::string name = dd->getIdentifier();
-//                    vector<int> arraySize = dd->getArraySize();
-//                    if(arraySize.size()!=0) { // int a[5] = {1,2,3,4,5};
-//                        int totalSize = 1;
-//                        for(int i=0; i<arraySize.size(); ++i) {
-//                            totalSize *= arraySize[i];
-//                        }
-//                        if(totalSize==-1) { // int a[]
-//                            tp = context.typeSystem.getType(this->getTypeSpec()->getLabel(), 1);
-//                            inst = context.builder.CreateAlloca(tp);
-//                        } else {
-//                            //context.setArraySize(name, totalSize);
-//                            Value *arraySizeValue = ConstantInt::get(Type::getInt32Ty(context.llvmContext), totalSize,
-//                                                                     true);
-//                            // tp ?= PointerType::get(getVarType(type.name), 0);
-//                            ArrayType * arrayType = ArrayType::get(tp, totalSize);
-//                            inst = context.builder.CreateAlloca(arrayType, arraySizeValue, "arraytmp");
-//                            tp = arrayType;
-//                        }
-//                        // set symbol table
-//                        context.setSymbolType(name, tp);
-//                        context.setSymbolValue(name, inst);
-//                        context.setValueType(inst, tp);
-//
-//                        //ConstantAggregateZero* const_array_2 = ConstantAggregateZero::get(tp);
-//                        //inst->setInitializer(const_array_2);
-//
-//
-//                    }
-//                    else {
-//                        inst = context.builder.CreateAlloca(tp);
-//                        // create alloca
-//                        // set symbol table
-//                        context.setSymbolType(name, tp);
-//                        context.setSymbolValue(name, inst);
-//                        context.setValueType(inst, tp);
-//                    }
-//
-//                }
-//                else{ // char *str = "abc";
-//                    AstDirectDeclarator *dd = decl->getDirectDeclarator();
-//                    std::string name = dd->getIdentifier();
-//                    AstPointer* pointer = decl->getPointer();
-//                    tp = context.typeSystem.getType(this->getTypeSpec()->getLabel(), pointer->getStarNum());
-//                    // Create a space in stack
-//                    inst = context.builder.CreateAlloca(tp);
-//                    // Store it to our SymbolTable
-//                    context.setSymbolType(name, tp);
-//                    context.setSymbolValue(name, inst);
-//                    context.setValueType(inst, tp);
-//                }
-//
-//                // codegen(expression)
-//                Value *exp;
-//                // TODO 类型检查
-//                if (initializer->getExpression()) {
-//                    exp = initializer->getExpression()->codegen(context);
-//                } else if (initializer->getInitList()) {
-//                    exp = initializer->getInitList()->codegen(context);
-//                } else {
-//                    std::cout << "Error in initializer: no child!" << std::endl;
-//                }
-//                // cast to correct type
-//                // context.typeSystem.cast(exp, context.typeSystem.getVarType(dstTypeStr), context.currentBlock());
-//
-//                // create store
-//                if(exp->getType()->getTypeID()==Type::PointerTyID) {
-//                    exp = context.builder.CreateLoad(exp);
-//                }
-//                context.builder.CreateStore(exp, inst);
-//            }
+            // example: int a=1; | int a[5] = {1,2,3,4,5};
+            if(hasInitializer){
+                // initializer : expression | '{' initializer_list '}'  | '{' initializer_list ',' '}'
+                AstInitializer *initializer = init_decl->getInitializer();
+                // codegen(expression)
+                Value *exp;
+                if (initializer->getExpression()) {
+                    exp = initializer->getExpression()->codegen(context);
+                } else if (initializer->getInitList()) {
+                    exp = initializer->getInitList()->codegen(context);
+                } else {
+                    std::cout << "Error in initializer: no child!" << std::endl;
+                }
+
+                // TODO 类型检查
+                // create store
+                // cast to correct type
+                // context.typeSystem.cast(exp, context.typeSystem.getVarType(dstTypeStr), context.currentBlock());
+                if(context.isIdentifier(exp)) {
+                    exp = context.builder.CreateLoad(exp);
+                }
+                context.builder.CreateStore(exp, inst);
+            }
         }
     }
     return nullptr;
