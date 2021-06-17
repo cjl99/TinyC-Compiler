@@ -57,6 +57,7 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
 
             // have initialization in declaration
             // example: int a=1; | int a[5] = {1,2,3,4,5};
+
             if(hasInitializer){
                 // initializer : expression | '{' initializer_list '}'  | '{' initializer_list ',' '}'
                 AstInitializer *initializer = init_decl->getInitializer();

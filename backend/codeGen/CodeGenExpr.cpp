@@ -15,11 +15,13 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
         Value *L = this->getUnaryExpr()->codegen(context);
         Value *R = this->getExpression()->codegen(context);
 
-        std::cout << "lhs type: " << L->getType()->getTypeID() << std::endl;
-        std::cout << "rhs type: " << R->getType()->getTypeID() << std::endl;
+        std::cout << "lhs type: " << context.typeSystem.getTypeStr(L->getType()) << std::endl;
+        std::cout << "rhs type: " << context.typeSystem.getTypeStr(R->getType()) << std::endl;
 
         if(op=="=") {
             if(context.isIdentifier(R)) R=context.builder.CreateLoad(R);
+            if(!L->getType()->isPointerTy()) return LogErrorV("Generate assign expr error: lhs is noy pointer type");
+
             context.builder.CreateStore(R, L);
         }
         else {
@@ -152,6 +154,9 @@ llvm::Value *AstBinaryExpr::codegen(CodeGen &context) {
     Value *L = this->front_expr->codegen(context);
     Value *R = this->back_expr->codegen(context);
 
+    std::cout << context.typeSystem.getTypeStr(L->getType()) << std::endl;
+    std::cout << context.typeSystem.getTypeStr(R->getType()) << std::endl;
+
     if(context.isIdentifier(L))
         L = context.builder.CreateLoad(L);
     if(context.isIdentifier(R))
@@ -159,6 +164,10 @@ llvm::Value *AstBinaryExpr::codegen(CodeGen &context) {
 
     Type *LType = L->getType();
     Type *RType = R->getType();
+    if(RType->isArrayTy()) R = context.builder.CreateBitCast(R, LType, "castR");
+
+    std::cout << context.typeSystem.getTypeStr(LType) << std::endl;
+    std::cout << context.typeSystem.getTypeStr(RType) << std::endl;
 
     bool isFloat = false;
     if( (LType->getTypeID() == Type::DoubleTyID) || (RType->getTypeID() == Type::DoubleTyID) ){  // type upgrade

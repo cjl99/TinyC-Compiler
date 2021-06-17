@@ -50,7 +50,7 @@ llvm::Type* CodeGen::getTypefromValue(Value *value) const {
 }
 
 bool CodeGen::isIdentifier(Value* value){
-    return getTypefromValue(value)!= nullptr;
+    return value->getType()->isPointerTy() || value->getType()->isPointerTy();
 }
 void CodeGen::setSymbolValue(string name, Value* value){
     this->code_stack.back()->named_values[name] = value;
