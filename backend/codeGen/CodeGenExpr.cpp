@@ -379,11 +379,14 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
 
         std::string name = primary_expr->getLabel();
         Value* value = context.getSymbolValue(name);
-        value = context.builder.CreateLoad(value);
+        if(!context.builder.CreateLoad(value)->getType()->isArrayTy())
+            value = context.builder.CreateLoad(value);
 
         cout << "Generating array index of " << name << endl;
         llvm::SmallVector<llvm::Value *, 1> indexes = {index}; // ArrayRef<Value *>
+
         auto ptr = context.builder.CreateInBoundsGEP(value, indexes, "elementPtr");
+
         return ptr;
     } else if(this->op=="()") {
         // Invoke Function Here

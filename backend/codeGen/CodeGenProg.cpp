@@ -42,8 +42,9 @@ llvm::Value* AstFunDef::codegen(CodeGen &context) {
     std::vector<Type*> argTypes;
     std::vector<std::pair<AstSpec*, AstDeclarator*>> paramList = this->getParamList();
     for(auto param:paramList){
-        if(!param.second->hasPointer())
+        if(!param.second->hasPointer()){
             argTypes.push_back(context.typeSystem.getType(param.first->getLabel()));
+        }
         else{
             int ptrLevel = param.second->getPointer()->getStarNum();
             argTypes.push_back(context.typeSystem.getType(param.first->getLabel(), ptrLevel));

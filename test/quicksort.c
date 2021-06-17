@@ -1,3 +1,4 @@
+extern int printf(char* format);
 void display(int array[], int maxlen)
 {
     int i;
@@ -52,8 +53,14 @@ void QuickSort(int *arr, int low, int high)
 // 主函数
 int main()
 {
-    int array[10] = {12,85,25,16,34,23,49,95,17,61};
-    int maxlen = 10;
+    int array[5];
+    int maxlen = 5;
+
+    array[0] = 1;
+    array[1] = 10;
+    array[2] = 3;
+    array[3] = 5;
+    array[4] = 7;
 
     printf("排序前的数组\n");
     display(array, maxlen);

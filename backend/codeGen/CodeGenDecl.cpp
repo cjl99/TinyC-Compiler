@@ -20,6 +20,7 @@
 llvm::Value* AstDeclaration::codegen(CodeGen &context) {
     std::cout << "Generate declaration" << std::endl;
     Type* tp = context.typeSystem.getType(this->getTypeSpec()->getLabel(), 0);
+
     Value* inst = nullptr;
     AstInitDeclList *init_decl_list = this->getInitDeclList();
     if(init_decl_list) {
@@ -48,7 +49,9 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
                             Value *arraySizeValue = ConstantInt::get(Type::getInt32Ty(context.llvmContext), totalSize,
                                                                      true);
                             // tp ?= PointerType::get(getVarType(type.name), 0);
+                            std::cout<< tp->getTypeID() <<std::endl;
                             ArrayType *arrayType = ArrayType::get(tp, totalSize);
+
                             inst = context.builder.CreateAlloca(arrayType, arraySizeValue, "arraytmp");
                             tp = arrayType;
                         }
