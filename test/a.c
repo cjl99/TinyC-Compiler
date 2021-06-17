@@ -6,8 +6,8 @@ extern int printf(char* format);
 
 int main(){
     int a[10];
-
-    a[0] = 1;
+    int *pa;
+    a[0] = 11;
 //    printf("%d ", pa[1]);
     printf("%d", a[0]);
 

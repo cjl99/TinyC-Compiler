@@ -33,12 +33,7 @@ Type *TypeSystem::getBuiltInType(string specifier) {
     if( specifier.compare("void") == 0 )  { return this->voidTy;}
     return nullptr;
 }
-//
-unique_ptr<Type> TypeSystem::getArrayType(string baseType, uint64_t size){
-    Value *arraySizeValue = ConstantInt::get(Type::getInt32Ty(llvmContext), size, true);
-    Type* tp = getType(baseType, 0);
-    return ArrayType::get(tp, totalSize);
-}
+
 
 //unique_ptr<Type> TypeSystem::getPtrType(Type* type){
 //    unique_ptr<Type> item = ptrMap[type];
@@ -59,12 +54,19 @@ unique_ptr<Type> TypeSystem::getArrayType(string baseType, uint64_t size){
 
 // =============Todo=======================
 Type* TypeSystem::getType(string specifiers, int ptrLevel, int arraySize){
-    if(getBuiltInType(specifiers)!= nullptr && ptrLevel==0)
-        return getBuiltInType(specifiers);
-//    if(getStructType(specifiers)!= nullptr){
-//        return getStructType(specifiers);
-//    }
-    else if(getBuiltInType(specifiers)!= nullptr && ptrLevel!=0){
+
+    // Error
+    if(getBuiltInType(specifiers)== nullptr){
+//        cout << "TypeSystem::getType Error: Type undefined!" << endl;
+        return nullptr;
+    }
+    // array
+    if(arraySize!=0){
+        Type* tp = getType(specifiers, 0);
+        return ArrayType::get(tp, arraySize);
+    }
+    // pointer
+    if(ptrLevel!=0){
         Type *pointeeType = getBuiltInType(specifiers);
         while(ptrLevel>0){
             pointeeType = PointerType::get(pointeeType, 0);
@@ -72,13 +74,9 @@ Type* TypeSystem::getType(string specifiers, int ptrLevel, int arraySize){
         }
         return pointeeType;
     }
-    else if(getBuiltInType(specifiers)!= nullptr && arraySize!=0){
-        return getArrayType(specifiers, arraySize);
-    }
-//    if(specifiers.find("[") != std::string::npos){
-//
-//    }
-    return nullptr;
+    // built-in
+    return getBuiltInType(specifiers);
+
 }
 
 TypeSystem::TypeSystem(LLVMContext& llvmContext)
