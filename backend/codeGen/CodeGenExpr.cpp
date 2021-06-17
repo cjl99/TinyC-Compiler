@@ -78,7 +78,6 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
     }
 }
 
-
 // conditional_expression :
 llvm::Value* AstCondiExpr::codegen(CodeGen &context) {
     if(!this->isExpand()) { // binary_expression
@@ -138,6 +137,7 @@ llvm::Value* AstCondiExpr::codegen(CodeGen &context) {
     return nullptr;
 }
 
+
 // binary_expression :
 //cast_expression
 //binary_expression OR_OP   binary_expression
@@ -158,7 +158,6 @@ llvm::Value* AstCondiExpr::codegen(CodeGen &context) {
 //binary_expression '*'     binary_expression {
 //binary_expression '/'     binary_expression {
 //binary_expression '%'     binary_expression {
-
 llvm::Value *AstBinaryExpr::codegen(CodeGen &context) {
     // cast expression
     if(this->isCastExpr()) {
@@ -243,7 +242,6 @@ llvm::Value *AstBinaryExpr::codegen(CodeGen &context) {
     std::cout << "Binary codegen success" << std::endl;
 
     return res;
-
 }
 
 // cast_expression
@@ -362,40 +360,33 @@ llvm::Value* AstUnaryExpr::codegen(CodeGen &context) {
 // postfix_expression INC_OP |
 // postfix_expression DEC_OP
 llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
-
     if(this->op=="") {  // primary expr
         return ((AstPrimaryExpr *)this->getPtr())->codegen(context);
     }
-
     std::cout << "Generate postfix expression" << std::endl;
 
+    // [] for vector indexing
     if(this->op=="[]") { // a[] pointer dereference
         AstPrimaryExpr *primary_expr = (AstPrimaryExpr *)this->getAstPostfixExpr()->getPtr();
         Value *index = ((AstExpression *)this->getPtr())->codegen(context);
-
+        // load value type
         if(index->getType()->getTypeID()==Type::PointerTyID){
             index = context.builder.CreateLoad(index);
         }
 
         std::string name = primary_expr->getLabel();
         Value* value = context.getSymbolValue(name);
-        std::cout << value->getType()->getTypeID() << std::endl;
-//        if(!context.builder.CreateLoad(value)->getType()->isArrayTy()) {
-//            std::cout << "here is" << std::endl;
-//            value = context.builder.CreateLoad(value);
-//        }
-        if(value->getType()->isPointerTy()) {
-            value = context.builder.CreateLoad(value);
-        }
+        std::cout << context.typeSystem.getTypeStr(value->getType()) << std::endl;
 
-        cout << "Generating array index of " << name << endl;
-        llvm::SmallVector<llvm::Value *, 1> indexes = {index}; // ArrayRef<Value *>
+        cout << "Generate array: " << name << endl;
+        std::vector<Value *> indexes;   // ArrayRef(std::vector)
+        indexes.push_back(index);
 
         auto ptr = context.builder.CreateInBoundsGEP(value, indexes, "elementPtr");
-
         return ptr;
-    } else if(this->op=="()") {
-        // Invoke Function Here
+    }
+    // () for invoking function
+    else if(this->op=="()") {
         AstPrimaryExpr *primary_expr = (AstPrimaryExpr *)this->getAstPostfixExpr()->getPtr();
         std::string funcName = primary_expr->getLabel();
         cout << "Generating function call of " << funcName << endl;
@@ -428,11 +419,17 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
         }
 
         return context.builder.CreateCall(calleeF, argsv, "calltmp");
-    } else if(this->op==".") {
-
-    } else if(this->op=="->") {
-
-    } else if(this->op=="++") { // var++
+    }
+    // TODO -- struct .
+    else if(this->op==".") {
+        return nullptr;
+    }
+    // TODO -- struct ptr
+    else if(this->op=="->") {
+        return nullptr;
+    }
+    // var++
+    else if(this->op=="++") {
         // Var value
         Value *tmpv = this->getAstPostfixExpr()->codegen(context);
         Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), 1, true);
@@ -445,7 +442,8 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
         // return original value
         return inst1;
     }
-    else if(this->op=="--") { // var--
+    // var--
+    else if(this->op=="--") {
         // Var value
         Value *tmpv = this->getAstPostfixExpr()->codegen(context);
         Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), 1, true);
@@ -458,7 +456,9 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
         // return original value
         return inst1;
     }
-    return nullptr;
+    else {
+        return LogErrorV("Generate postfix expression error: No operator " + this->op );
+    }
 }
 
 

@@ -9,7 +9,6 @@
 
 using namespace llvm;
 
-using TypeNamePair = std::pair<std::string, std::string>;
 using std::string;
 using std::vector;
 using std::unique_ptr;
@@ -63,7 +62,7 @@ public:
     // std::unique_ptr<Type> getStructType(std::string name);
 
     Type* getType(std::string specifiers, int ptrLevel=0, int arraySize=0);
-
+    static std::string getTypeStr(Type *type);
 };
 
 #endif //TINYC_COMPILER_TYPESYSTEM_H

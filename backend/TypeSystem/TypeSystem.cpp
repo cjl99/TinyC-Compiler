@@ -34,6 +34,23 @@ Type *TypeSystem::getBuiltInType(string specifier) {
     return nullptr;
 }
 
+std::string TypeSystem::getTypeStr(Type *type) {
+    switch(type->getTypeID()) {
+        case Type::VoidTyID: return "VoidTyID";
+        case Type::HalfTyID: return "HalfTyID";
+        case Type::FloatTyID: return "FloatTyID";
+        case Type::DoubleTyID: return "DoubleTyID";
+        case Type::IntegerTyID:  return "IntegerTyID";
+        case Type::FunctionTyID: return "FunctionTyID";
+        case Type::StructTyID: return "StructTyID";
+        case Type::ArrayTyID: return "ArrayTyID";
+        case Type::PointerTyID: return "PointerTyID";
+        case Type::FixedVectorTyID: return "FixedVectorTyID";
+        case Type::ScalableVectorTyID: return "ScalableVectorTyID";
+        case Type::TokenTyID: return "TokenTyID";
+        default: return "UnknownTyID";
+    }
+}
 
 //unique_ptr<Type> TypeSystem::getPtrType(Type* type){
 //    unique_ptr<Type> item = ptrMap[type];
