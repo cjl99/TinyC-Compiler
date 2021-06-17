@@ -305,7 +305,10 @@ llvm::Value* AstUnaryExpr::codegen(CodeGen &context) {
             }
             else if(op=="&") { //int *p = &a
                 // return value is already pointer which points to the address
-                return tmpv;
+                Value *tmp = unary_expr->codegen(context);
+                Value *res = context.builder.CreateAlloca(context.typeSystem.getType("int", 1, 0));
+                context.builder.CreateStore(tmp, res);
+                return res;
             }
             else if(op=="*"){ // *p = 1;
                 // tmpv is the pointer's address
