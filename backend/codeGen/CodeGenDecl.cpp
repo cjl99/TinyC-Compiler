@@ -1,18 +1,6 @@
 #include "CodeGen.h"
 #include "../../ast/AstDecl.h"
 
-//===========DeclarationList codegen=============
-// llvm::Value* AstDeclarationList::codegen(CodeGen &context) {
-//     std::cout << "Generate declaration_list" << std::endl;
-    
-//     std::vector<AstDeclaration*> declarationList = this->getDeclarationList();
-    
-//     for(auto declaration: declarationList){
-//         declaration->codegen(context);
-//     }
-//     return nullptr;
-// }
-
 // TODO
 // declaration: type_specifier {init_declarator}*n ';'
 // init_declarator: declarator  | declarator '=' initializer | direct_declarator
@@ -20,23 +8,47 @@
 llvm::Value* AstDeclaration::codegen(CodeGen &context) {
     std::cout << "Generate declaration" << std::endl;
     Type* tp = context.typeSystem.getType(this->getTypeSpec()->getLabel(), 0);
-
     Value* inst = nullptr;
+
     AstInitDeclList *init_decl_list = this->getInitDeclList();
     if(init_decl_list) {
         std::vector < AstInitDeclarator * > init_decl_vec = init_decl_list->getInitDeclList();
         for (auto init_decl : init_decl_vec) {
+
+            bool hasInitializer = init_decl->hasEqual();  // int a = 1 vs. int a
+
+            AstDeclarator *decl = init_decl->getDeclarator();
+            bool isPointerTy = decl->hasPointer();        // int *a vs. int a
+            bool isArrayTy = decl->getDirectDeclarator()->getArraySize().size()!=0;   // int a[10] vs. int a
+
             // don't have initialization
-            if (!init_decl->hasEqual()) {
-                AstDeclarator *decl = init_decl->getDeclarator();
-                // Basic Type -- example: int a;
-                if (!decl->hasPointer()) {
+            if (!hasInitializer) {
+
+                if(isPointerTy || isArrayTy) {
+                    AstDirectDeclarator *dd = decl->getDirectDeclarator();
+                    std::string name = dd->getIdentifier();
+                    int ptrLevel = 0;
+                    if(isPointerTy) ptrLevel = decl->getPointer()->getStarNum();
+                    else if(isArrayTy) ptrLevel=dd->getArraySize().size();
+
+                    std::cout << "Here ptrlevel: " << to_string(ptrLevel) << std::endl;
+
+                    tp = context.typeSystem.getType(this->getTypeSpec()->getLabel(), ptrLevel);
+                    // Create a space in stack
+                    inst = context.builder.CreateAlloca(tp);
+                    // Store it to our SymbolTable
+                    context.setSymbolType(name, tp);
+                    context.setSymbolValue(name, inst);
+                    context.setValueType(inst, tp);
+                }
+                else {
                     // Get variable name
                     AstDirectDeclarator *dd = decl->getDirectDeclarator();
                     std::string name = dd->getIdentifier();
                     vector<int> arraySize = dd->getArraySize();
                     // vector type
-                    if( arraySize.size()!=0 ){ // example a[4][6];
+                    // if( arraySize.size()!=0 ){ // example a[4][6];
+                    if(0) {
                         int totalSize = 1;
                         for(int i=0; i<arraySize.size(); ++i) {
                             totalSize *= arraySize[i];
@@ -70,20 +82,6 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
                     }
 
                 }
-                // Pointer Type -- example: int *a;
-                else {
-                    AstDirectDeclarator *dd = decl->getDirectDeclarator();
-                    std::string name = dd->getIdentifier();
-                    AstPointer* pointer = decl->getPointer();
-                    tp = context.typeSystem.getType(this->getTypeSpec()->getLabel(), pointer->getStarNum());
-                    // Create a space in stack
-                    inst = context.builder.CreateAlloca(tp);
-                    // Store it to our SymbolTable
-                    context.setSymbolType(name, tp);
-                    context.setSymbolValue(name, inst);
-                    context.setValueType(inst, tp);
-                }
-
 
             }
             // have initialization in declaration

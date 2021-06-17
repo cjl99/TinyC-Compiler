@@ -34,14 +34,12 @@ Type *TypeSystem::getBuiltInType(string specifier) {
     return nullptr;
 }
 //
-//unique_ptr<Type> TypeSystem::getArrayType(Type* type, uint64_t size){
-//    unique_ptr<Type> item = arrMap[std::make_pair(type, size)];
-//    if(!item.get()){
-//        arrMap[std::make_pair(vecType, size)] = ArrayType::get(type, size);
-//    }
-//    return arrMap[std::make_pair(vecType, size)].get();
-//}
-//
+unique_ptr<Type> TypeSystem::getArrayType(string baseType, uint64_t size){
+    Value *arraySizeValue = ConstantInt::get(Type::getInt32Ty(llvmContext), size, true);
+    Type* tp = getType(baseType, 0);
+    return ArrayType::get(tp, totalSize);
+}
+
 //unique_ptr<Type> TypeSystem::getPtrType(Type* type){
 //    unique_ptr<Type> item = ptrMap[type];
 //    if(!item.get()){
@@ -60,7 +58,7 @@ Type *TypeSystem::getBuiltInType(string specifier) {
 //
 
 // =============Todo=======================
-Type* TypeSystem::getType(string specifiers, int ptrLevel){
+Type* TypeSystem::getType(string specifiers, int ptrLevel, int arraySize){
     if(getBuiltInType(specifiers)!= nullptr && ptrLevel==0)
         return getBuiltInType(specifiers);
 //    if(getStructType(specifiers)!= nullptr){
@@ -73,6 +71,9 @@ Type* TypeSystem::getType(string specifiers, int ptrLevel){
             ptrLevel--;
         }
         return pointeeType;
+    }
+    else if(getBuiltInType(specifiers)!= nullptr && arraySize!=0){
+        return getArrayType(specifiers, arraySize);
     }
 //    if(specifiers.find("[") != std::string::npos){
 //

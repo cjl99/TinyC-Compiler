@@ -48,6 +48,7 @@ llvm::Value* AstFunDef::codegen(CodeGen &context) {
         else{
             int ptrLevel = param.second->getPointer()->getStarNum();
             argTypes.push_back(context.typeSystem.getType(param.first->getLabel(), ptrLevel));
+            // []
         }
     }
 

@@ -58,13 +58,13 @@ public:
     //=============================================================
     Type* getBuiltInType(std::string specifier);
 
-    // std::unique_ptr<Type> getArrayType(Type* type, uint64_t size);
+     std::unique_ptr<Type> getArrayType(std::string baseType, uint64_t size);
 
     // std::unique_ptr<Type> getPtrType(Type* type);
 
     // std::unique_ptr<Type> getStructType(std::string name);
 
-    Type* getType(std::string specifiers, int ptrLevel=0);
+    Type* getType(std::string specifiers, int ptrLevel=0, int arraySize=0);
 
 };
 
