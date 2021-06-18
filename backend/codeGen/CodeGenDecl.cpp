@@ -37,64 +37,46 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
                 for(int i=0; i<arraySize.size(); ++i) {
                     totalSize *= arraySize[i];
                 }
-                if(totalSize<0) {//  int a[]
-                    tp = context.typeSystem.getType(varType, 1);
-                }
-                else{
-                    tp = context.typeSystem.getType(varType, 0, totalSize);
-                }
+                if(totalSize<0) tp = context.typeSystem.getType(varType, 1);
+                else tp = context.typeSystem.getType(varType, 0, totalSize);
+
+                Type* element_type = context.typeSystem.getType(varType);
+
+                context.theModule->getOrInsertGlobal("array"+varName, ArrayType::get(element_type, totalSize) );
+                GlobalVariable* GArray = context.theModule->getNamedGlobal("array"+varName);
+                // GArray->setLinkage(GlobalValue::LinkageTypes::ExternalLinkage);
+                //GArray->setAlignment(4);
+
+                // std::vector<Constant *> vec_init;
+                std::vector<Constant *> vec_init(totalSize, ConstantInt::get(Type::getInt32Ty(context.llvmContext), 0, true));
 
                 if(hasInitializer) {
-                    Type* element_type = context.typeSystem.getType(varType);
-
-                    context.theModule->getOrInsertGlobal("array", ArrayType::get(element_type, totalSize) );
-
-                    GlobalVariable* GArray = context.theModule->getNamedGlobal("array");
-
-                    //GArray->setLinkage(GlobalValue::LinkageTypes::CommonLinkage);
-
-                    //GArray->setAlignment(4);
-                    //AstInitializer *initializer = init_decl->getInitializer();
-//                    std::vector<Value *> valueArray;
-//                    for(AstInitializer *init: initializer->getInitList()->getInitializerList()) {
-//                        if(init->isExpression()) {
-//                            // TODO only constant type now
-//                            valueArray.push_back(init->getExpression()->codegen(context));
-//                        }
-//                        else {
-//                            valueArray.push_back(init->getInitList()->codegen(context)); //TODO
-//                        }
-//                    }
-//                    Constant* res = ConstantDataArray::get(context.llvmContext, valueArray);
-                    std::vector<Constant *> vec_init;
-                    //std::vector<Constant *> vec_init(totalSize,
-                    //                                 ConstantInt::get(Type::getInt32Ty(context.llvmContext), 1, true));
                     AstInitializer *initializer = init_decl->getInitializer();
-//
-                    for(AstInitializer *init: initializer->getInitList()->getInitializerList()) {
-                        if(init->isExpression()) {
+                    int count = 0;
+
+                    for (AstInitializer *init: initializer->getInitList()->getInitializerList()) {
+                        if (init->isExpression()) {
                             Value *tmp_init = init->getExpression()->codegen(context);
-                            if(tmp_init->getType()->isPointerTy())
+                            if (tmp_init->getType()->isPointerTy())
                                 tmp_init = context.builder.CreateLoad(tmp_init);
-                            vec_init.push_back(dyn_cast<ConstantInt>(tmp_init));
-                        }
-                        else {
-                          //  vec_init.push_back(init->getInitList()->codegen(context)); //TODO
+                            vec_init[count++] = dyn_cast<ConstantInt>(tmp_init);
+                        } else {
+                            //  vec_init.push_back(init->getInitList()->codegen(context)); //TODO
                         }
                     }
-
-                    Constant *ct = ConstantArray::get(ArrayType::get(element_type, totalSize), vec_init);
-                    GArray->setInitializer(ct);
+                }
+                Constant *ct = ConstantArray::get(ArrayType::get(element_type, totalSize), vec_init);
+                GArray->setInitializer(ct);
 
 //                    inst = context.builder.CreateAlloca(tp);
 //                    inst = context.builder.CreateStore(GArray, inst);
-//                    // Store inst to our SymbolTable
-                    context.setSymbolType(varName, tp);
-                    context.setSymbolValue(varName, GArray);
-                    context.setValueType(GArray, tp);
+//                   // Store inst to our SymbolTable
+                context.setSymbolType(varName, tp);
+                context.setSymbolValue(varName, GArray);
+                context.setValueType(GArray, tp);
 
-                    continue;
-                }
+                continue;
+
 
 
             }

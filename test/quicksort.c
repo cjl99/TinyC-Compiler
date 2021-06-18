@@ -53,8 +53,9 @@ int QuickSort(int *arr, int low, int high)
 // 主函数
 int main()
 {
+    int arb[3] = {1,2,3};
     int array[10] = {1,10,390,88,5,7,9,4,13,2};
-    int arb[20];
+
     int maxlen = 10;
 
     printf("排序前的数组\n");
