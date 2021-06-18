@@ -1,31 +1,29 @@
 extern int printf(char* format);
 
 int main(){
-    int a = 222;
-    int *pa = &a;
-    int array[10];
-    char *str = "abc";
-    int array2[10];
-    int *parr = array2;
 
     // test pointer
-    printf("test pointer>>\n");
-    printf("%d %d\n",a, *pa);
+//    int a = 222;
+//    int *pa = &a;
+//    int **ppa = &pa;
+//    printf("%d %d %d\n",a, *pa, **ppa);
 
     // test array
-    printf("test array>>\n");
-    array[0] = 111;
-    array[1] = 222;
-    printf("%d %d\n",array[0], array[1]);
-
-    // test pointer to array
-    printf("test pointer to array>>\n");
-    printf("%d %c\n",str, str[1]);
-
-    printf("test pointer to array>>\n");
-    array2[1] = 3;
-    parr[1] = 2;
-    printf("%d %d", array2[1], parr[1]);
+//    int array[10];
+//    array[0] = 111;
+//    array[1] = 222;
+//    printf("%d %d\n",array[0], array[1]);
+//
+//    // test pointer to array
+//    char *str = "abc";
+//    printf("%s %c\n",str, str[1]);
+//
+//    // test pointer to array
+    int array2[10];
+    int *parr = array2;
+    array2[0] = 31;
+    parr[2] = 222;
+    printf("%d %d", parr[0], array2[2]);
 
     return 0;
 }

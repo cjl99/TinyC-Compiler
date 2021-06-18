@@ -65,6 +65,7 @@ llvm::Value* AstFunDef::codegen(CodeGen &context) {
 
         for (auto &irArgIter: function->args()) {
             irArgIter.setName((*param).second->getDirectDeclarator()->getIdentifier());
+            std::cout << "Args Type: " << context.typeSystem.getTypeStr(irArgIter.getType()) << std::endl;
             Value *argAlloc;
             int ptrLevel = 0;
             if ((*param).second->hasPointer())
@@ -72,10 +73,11 @@ llvm::Value* AstFunDef::codegen(CodeGen &context) {
             string typeName = (*param).second->getDirectDeclarator()->getIdentifier();
 
             argAlloc = context.builder.CreateAlloca(context.typeSystem.getType((*param).first->getLabel(), ptrLevel));
-
-            context.builder.CreateStore(&irArgIter, argAlloc, false);
+            context.builder.CreateStore(&irArgIter, argAlloc);
             context.setSymbolValue(typeName, argAlloc);
             context.setSymbolType(typeName, context.typeSystem.getType((*param).first->getLabel(), ptrLevel));
+//            context.setSymbolValue(typeName, &irArgIter);
+//            context.setSymbolType(typeName, context.typeSystem.getType((*param).first->getLabel(), ptrLevel));
             param++;
         }
 

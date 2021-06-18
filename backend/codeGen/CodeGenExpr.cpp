@@ -13,15 +13,24 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
         std::cout << "Generate assignment expression...\n op is: " << op << std::endl;
 
         Value *L = this->getUnaryExpr()->codegen(context);
-        Value *R = this->getExpression()->codegen(context);
-
         std::cout << "lhs type: " << context.typeSystem.getTypeStr(L->getType()) << std::endl;
+
+        Value *R = this->getExpression()->codegen(context);
         std::cout << "rhs type: " << context.typeSystem.getTypeStr(R->getType()) << std::endl;
 
         if(op=="=") {
-            if(context.isIdentifier(R)) R=context.builder.CreateLoad(R);
-            if(!L->getType()->isPointerTy()) return LogErrorV("Generate assign expr error: lhs is noy pointer type");
+            // RValue is variable or not
+            if(R->getType()->isPointerTy()){
+                Value *tmpv = context.builder.CreateLoad(R);
+                // RValue is array or not
+                if(tmpv->getType()->isArrayTy()){
+                    Type *ptr  = PointerType::get(tmpv->getType()->getArrayElementType(), 0);
+                    R = context.builder.CreateBitCast(R, ptr, "castArray2Ptr");
+                }
+                else R=tmpv;
+            }
 
+            if(!L->getType()->isPointerTy()) return LogErrorV("Generate assign expr error: lhs is noy pointer type");
             context.builder.CreateStore(R, L);
         }
         else {
@@ -187,17 +196,22 @@ llvm::Value *AstBinaryExpr::codegen(CodeGen &context) {
         L = context.CastToBoolean(context, L);
         R = context.CastToBoolean(context, R);
         res = context.builder.CreateAnd(L, R, "and(i)tmp");
-    } else if(op=="||") {
+    }
+    else if(op=="||") {
         L = context.CastToBoolean(context, L);
         R = context.CastToBoolean(context, R);
         res = context.builder.CreateOr(L, R, "or(i)tmp");
-    } else if(op=="&") {
+    }
+    else if(op=="&") {
         res = isFloat ? LogErrorV("Double type has no AND operation") : context.builder.CreateAnd(L, R, "andtmp");
-    } else if(op=="|") {
+    }
+    else if(op=="|") {
         res = isFloat ? LogErrorV("Double type has no OR operation") : context.builder.CreateOr(L, R, "ortmp");
-    } else if(op=="^") {
+    }
+    else if(op=="^") {
         res =  isFloat ? LogErrorV("Double type has no XOR operation") : context.builder.CreateXor(L, R, "xortmp");
-    } else if(op=="==") {
+    }
+    else if(op=="==") {
         res =  isFloat ? context.builder.CreateFCmpOEQ(L, R, "cmpftmp") : context.builder.CreateICmpEQ(L, R, "cmptmp");
     } else if(op=="!=") {
         res =  isFloat ? context.builder.CreateFCmpONE(L, R, "cmpftmp") : context.builder.CreateICmpNE(L, R, "cmptmp");
@@ -228,7 +242,7 @@ llvm::Value *AstBinaryExpr::codegen(CodeGen &context) {
     }
 
     std::cout << "Binary codegen success" << std::endl;
-
+    std::cout << "Binary return type:" << context.typeSystem.getTypeStr(res->getType()) << std::endl;
     return res;
 }
 
@@ -259,7 +273,7 @@ llvm::Value* AstCastExpr::codegen(CodeGen &context) {
 }
 
 // unary_expression
-// postfix | ++unary | --unary | unary_operator unaryexpr
+// postfix | ++unary | --unary | unary_operator unary expr
 llvm::Value* AstUnaryExpr::codegen(CodeGen &context) {
     if(this->op.length()==0) {  //op==""
         AstPostfixExpr *post_expr = (AstPostfixExpr *)this->getPtr();
@@ -268,38 +282,47 @@ llvm::Value* AstUnaryExpr::codegen(CodeGen &context) {
     else {
         std::cout << "Generate unary expression" << std::endl;
 
-        AstUnaryExpr *unary_expr = (AstUnaryExpr *)this->getPtr();
-        Value *tmpv =unary_expr->codegen(context);      // Var value
+        if(this->op=="++") { // tmpv += 1; return tmpv; ++a
+            AstUnaryExpr *unary_expr = (AstUnaryExpr *)this->getPtr();
+            Value *tmpv =unary_expr->codegen(context);      // Var value
 
-        if(this->op=="++") { // tmpv += 1; return tmpv;
             Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), 1, true); // num = 1
             LoadInst *inst1 = context.builder.CreateLoad(tmpv);
             Value *add1 = context.builder.CreateAdd(inst1, t1, "add1");
             context.builder.CreateStore(add1, tmpv);
             // the return value cannot be assign -- should not return tmpv;
             return context.builder.CreateLoad(tmpv);
-        } else if(this->op=="--") { //tmpv -= 1; return tmpv;
+        }
+        else if(this->op=="--") { //tmpv -= 1; return tmpv;
+            AstUnaryExpr *unary_expr = (AstUnaryExpr *)this->getPtr();
+            Value *tmpv =unary_expr->codegen(context);      // Var value
+
             Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), 1, true);
             LoadInst *inst1 = context.builder.CreateLoad(tmpv);
             Value *add1 = context.builder.CreateSub(inst1, t1, "sub1");
             context.builder.CreateStore(add1, tmpv);
             // the return value cannot be assign -- should not return tmpv;
             return context.builder.CreateLoad(tmpv);
-        } else { // op = & * + - ~ !
+        }
+        else { // op = & * + - ~ !
+            AstCastExpr *cast_expr = (AstCastExpr *)this->getPtr();
+            Value *tmpv = cast_expr->codegen(context);      // Var value
+
             if(op=="+") {
-                return tmpv;
-            } else if(op=="-") {
+                return tmpv->getType()->isPointerTy()?context.builder.CreateLoad(tmpv):tmpv;;
+            }
+            else if(op=="-") {
                 Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), 0, true);
+                tmpv = tmpv->getType()->isPointerTy()?context.builder.CreateLoad(tmpv):tmpv;
                 return context.builder.CreateSub(t1, tmpv, "negtmp");
             }
             else if(op=="!") {
+                tmpv = tmpv->getType()->isPointerTy()?context.builder.CreateLoad(tmpv):tmpv;
                 tmpv = context.CastToBoolean(context, tmpv);
-                if(tmpv->getType()->getTypeID() == Type::IntegerTyID){
-                    return context.builder.CreateNot(tmpv, "nottmp");
-                }
-                return LogErrorV("~ operator must apply to numerics");
+                return context.builder.CreateNot(tmpv, "nottmp");
             }
             else if(op=="~") {
+                tmpv = tmpv->getType()->isPointerTy()?context.builder.CreateLoad(tmpv):tmpv;
                 if(tmpv->getType()->getTypeID() == Type::IntegerTyID){
                     Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), 0, true);
                     return context.builder.CreateXor(tmpv, t1, "xortmp");
@@ -308,9 +331,8 @@ llvm::Value* AstUnaryExpr::codegen(CodeGen &context) {
             }
             else if(op=="&") { //int *p = &a
                 // return value is already pointer which points to the address
-                Value *tmp = unary_expr->codegen(context);
-                Value *res = context.builder.CreateAlloca(context.typeSystem.getType("int", 1, 0));
-                context.builder.CreateStore(tmp, res);
+                Value *res = context.builder.CreateAlloca(tmpv->getType());
+                context.builder.CreateStore(tmpv, res);
                 return res;
             }
             else if(op=="*"){ // *p = 1;
@@ -353,15 +375,22 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
 
         std::string name = primary_expr->getLabel();
         Value* value = context.getSymbolValue(name);
-        //value = context.builder.CreateLoad(value);
+        Value *tmparray = context.builder.CreateLoad(value);
+        if(tmparray->getType()->isArrayTy()) {
+            Type *ptr  = PointerType::get(tmparray->getType()->getArrayElementType(), 0);
+            value = context.builder.CreateBitCast(value, ptr, "castArray2Ptr");
+        }
+        else value = tmparray;
+
         std::cout << context.typeSystem.getTypeStr(value->getType()) << std::endl;
 
         cout << "Generate array: " << name << endl;
         std::vector<Value *> indexes;   // ArrayRef(std::vector)
         indexes.push_back(index);
 
-        auto ptr = context.builder.CreateInBoundsGEP(value, indexes, "elementPtr");
-        return ptr;
+        auto arrayPtr = context.builder.CreateInBoundsGEP(value, indexes, "elementPtr");
+        return arrayPtr;
+
     }
     // () for invoking function
     else if(this->op=="()") {
@@ -389,6 +418,8 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
             std::cout << context.typeSystem.getTypeStr(tmp->getType()) << std::endl;
             if(tmp->getType()->getTypeID()==Type::PointerTyID ) {
                 tmp = context.builder.CreateLoad(tmp);
+                // if(tmp->getType()->isArrayTy())
+                //     tmp = context.builder.CreateBitCast(tmp, tmp->getType()->getArrayElementType(), "ary_cast");
             }
             argsv.push_back(tmp);
             if( !argsv.back() ){        // if any argument codegen fail
@@ -407,7 +438,6 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
     else if(this->op=="->") {
         return nullptr;
     }
-    // var++
     else if(this->op=="++") {
         // Var value
         Value *tmpv = this->getAstPostfixExpr()->codegen(context);
@@ -416,13 +446,11 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
         LoadInst *inst1 = context.builder.CreateLoad(tmpv);
         // Add 1 operation
         Value *add1 = context.builder.CreateAdd(inst1, t1, "add1");
-        std::cout << context.typeSystem.getTypeStr(add1->getType()) << std::endl;
         // Write Back to stack
         context.builder.CreateStore(add1, tmpv);
         // return original value
         return inst1;
     }
-    // var--
     else if(this->op=="--") {
         // Var value
         Value *tmpv = this->getAstPostfixExpr()->codegen(context);
@@ -452,6 +480,7 @@ llvm::Value * AstPrimaryExpr::codegen(CodeGen &context) {
         cout << "Generating identifier " << this->getLabel() << endl;
         Value* value = context.getSymbolValue(this->getLabel());
         if( !value ) return LogErrorV("Unknown variable name " + this->getLabel());
+
         return value;
     }
     else if(primary_type==2) { //CONSTANT f ll l 什么的先不考虑 就考虑整数
@@ -490,11 +519,12 @@ llvm::Value * AstPrimaryExpr::codegen(CodeGen &context) {
     }
     else if(primary_type==3) { // STRING_LITERAL ""
         std::cout << "Generate STRING_LITERAL: " << this->getLabel() << std::endl;
-        //Type *tp = context.typeSystem.getType("char", 1); // tp is char * now
-        //Value *tmp = context.builder.CreateAlloca(tp);
+        Type *tp = context.typeSystem.getType("char", 1); // tp is char * now
+        Value *tmp = context.builder.CreateAlloca(tp);
         Value *str = context.builder.CreateGlobalString(this->getLabel(), "string");
-        //context.builder.CreateStore(str, tmp);
-        return str;
+        std::cout << context.typeSystem.getTypeStr(str->getType()) << std::endl;
+        context.builder.CreateStore(str, tmp);
+        return tmp;
     }
     else if(primary_type==4) { // (expression)
         return this->getExpression()->codegen(context);

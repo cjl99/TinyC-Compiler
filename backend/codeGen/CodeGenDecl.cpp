@@ -75,9 +75,17 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
                 // create store
                 // cast to correct type
                 // context.typeSystem.cast(exp, context.typeSystem.getVarType(dstTypeStr), context.currentBlock());
-                if(context.isIdentifier(exp)) {
-                    exp = context.builder.CreateLoad(exp);
+                // RValue is variable or not
+                if(exp->getType()->isPointerTy()){
+                    Value *tmpv = context.builder.CreateLoad(exp);
+                    // RValue is array or not
+                    if(tmpv->getType()->isArrayTy()){
+                        Type *ptr  = PointerType::get(tmpv->getType()->getArrayElementType(), 0);
+                        exp = context.builder.CreateBitCast(exp, ptr, "castArray2Ptr");
+                    }
+                    else exp=tmpv;
                 }
+
                 context.builder.CreateStore(exp, inst);
             }
         }

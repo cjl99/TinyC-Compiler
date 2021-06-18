@@ -40,7 +40,7 @@ std::string TypeSystem::getTypeStr(Type *type) {
         case Type::HalfTyID: return "HalfTyID";
         case Type::FloatTyID: return "FloatTyID";
         case Type::DoubleTyID: return "DoubleTyID";
-        case Type::IntegerTyID:  return "IntegerTyID";
+        case Type::IntegerTyID:  return "int";
         case Type::FunctionTyID: return "FunctionTyID";
         case Type::StructTyID: return "StructTyID";
         case Type::ArrayTyID: return "ArrayTyID";
