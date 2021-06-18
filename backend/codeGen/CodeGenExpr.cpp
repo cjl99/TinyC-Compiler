@@ -272,25 +272,19 @@ llvm::Value* AstUnaryExpr::codegen(CodeGen &context) {
         Value *tmpv =unary_expr->codegen(context);      // Var value
 
         if(this->op=="++") { // tmpv += 1; return tmpv;
-            Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), 1, true);
-            // Load to register
+            Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), 1, true); // num = 1
             LoadInst *inst1 = context.builder.CreateLoad(tmpv);
-            // Add 1 operation
             Value *add1 = context.builder.CreateAdd(inst1, t1, "add1");
-            // Write Back to stack
             context.builder.CreateStore(add1, tmpv);
-            // return value
-            return tmpv;
+            // the return value cannot be assign -- should not return tmpv;
+            return context.builder.CreateLoad(tmpv);
         } else if(this->op=="--") { //tmpv -= 1; return tmpv;
             Value *t1 = ConstantInt::get(Type::getInt32Ty(context.llvmContext), 1, true);
-            // Load to register
             LoadInst *inst1 = context.builder.CreateLoad(tmpv);
-            // Sub 1 operation
             Value *add1 = context.builder.CreateSub(inst1, t1, "sub1");
-            // Write Back to stack
             context.builder.CreateStore(add1, tmpv);
-            // return value
-            return tmpv;
+            // the return value cannot be assign -- should not return tmpv;
+            return context.builder.CreateLoad(tmpv);
         } else { // op = & * + - ~ !
             if(op=="+") {
                 return tmpv;
@@ -359,6 +353,7 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
 
         std::string name = primary_expr->getLabel();
         Value* value = context.getSymbolValue(name);
+        //value = context.builder.CreateLoad(value);
         std::cout << context.typeSystem.getTypeStr(value->getType()) << std::endl;
 
         cout << "Generate array: " << name << endl;
@@ -391,6 +386,7 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
         std::vector<Value*> argsv;
         for(auto it=arg_vec.begin(); it!=arg_vec.end(); it++){
             Value *tmp = (*it)->codegen(context);
+            std::cout << context.typeSystem.getTypeStr(tmp->getType()) << std::endl;
             if(tmp->getType()->getTypeID()==Type::PointerTyID ) {
                 tmp = context.builder.CreateLoad(tmp);
             }
@@ -420,6 +416,7 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
         LoadInst *inst1 = context.builder.CreateLoad(tmpv);
         // Add 1 operation
         Value *add1 = context.builder.CreateAdd(inst1, t1, "add1");
+        std::cout << context.typeSystem.getTypeStr(add1->getType()) << std::endl;
         // Write Back to stack
         context.builder.CreateStore(add1, tmpv);
         // return original value
@@ -449,16 +446,13 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
 //: IDENTIFIER | CONSTANT | STRING_LITERAL | '(' expression ')'
 llvm::Value * AstPrimaryExpr::codegen(CodeGen &context) {
     std::cout << "Generate primary expression: " << this->getLabel() << std::endl;
-
     int primary_type = this->getType();
 
     if(primary_type==1) { // IDENTIFIER -- name char *
         cout << "Generating identifier " << this->getLabel() << endl;
         Value* value = context.getSymbolValue(this->getLabel());
-        if( !value ){
-            return LogErrorV("Unknown variable name " + this->getLabel());
-        }
-         return value;
+        if( !value ) return LogErrorV("Unknown variable name " + this->getLabel());
+        return value;
     }
     else if(primary_type==2) { //CONSTANT f ll l 什么的先不考虑 就考虑整数
 //   16进制 {HP}{H}+{IS}?			{ yylval.str = strdup(yytext); RETURN_TOKEN(CONSTANT); }  0[xX][a-fA-F0-9]+(((u|U)(l|L|ll|LL)?)|((l|L|ll|LL)(u|U)?))
@@ -496,11 +490,11 @@ llvm::Value * AstPrimaryExpr::codegen(CodeGen &context) {
     }
     else if(primary_type==3) { // STRING_LITERAL ""
         std::cout << "Generate STRING_LITERAL: " << this->getLabel() << std::endl;
-        Type *tp = context.typeSystem.getType("char", 1); // tp is char * now
-        Value *tmp = context.builder.CreateAlloca(tp);
+        //Type *tp = context.typeSystem.getType("char", 1); // tp is char * now
+        //Value *tmp = context.builder.CreateAlloca(tp);
         Value *str = context.builder.CreateGlobalString(this->getLabel(), "string");
-        context.builder.CreateStore(str, tmp);
-        return tmp;
+        //context.builder.CreateStore(str, tmp);
+        return str;
     }
     else if(primary_type==4) { // (expression)
         return this->getExpression()->codegen(context);

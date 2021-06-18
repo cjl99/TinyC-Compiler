@@ -5,11 +5,11 @@ extern int printf(char* format);
 //}
 
 int main(){
-    int a[10];
-    int *b = a;
-    a[0] = 3;
-    b[0] = 2;
-    printf("%p %p", a, b);
+    int a=1;
+    int b[10];
+
+    b[1] = 1;
+    printf("%d", b[1]);
 
     return 0;
 }
