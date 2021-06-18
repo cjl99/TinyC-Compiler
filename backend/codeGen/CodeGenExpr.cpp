@@ -391,6 +391,7 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
         std::cout << context.typeSystem.getTypeStr(value->getType()) << std::endl;
 
         cout << "Generate array: " << name << endl;
+
         std::vector<Value *> indexes;   // ArrayRef(std::vector)
         indexes.push_back(index);
 

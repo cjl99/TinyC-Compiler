@@ -250,4 +250,6 @@ AstInitList * AstInitializer::getInitList() {
 AstExpression * AstInitializer::getExpression() {
     return this->astExpression;
 }
-
+bool AstInitializer::isExpression() {
+    return this->astExpression!=nullptr;
+}

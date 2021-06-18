@@ -43,6 +43,60 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
                 else{
                     tp = context.typeSystem.getType(varType, 0, totalSize);
                 }
+
+                if(hasInitializer) {
+                    Type* element_type = context.typeSystem.getType(varType);
+
+                    context.theModule->getOrInsertGlobal("array", ArrayType::get(element_type, totalSize) );
+
+                    GlobalVariable* GArray = context.theModule->getNamedGlobal("array");
+
+                    //GArray->setLinkage(GlobalValue::LinkageTypes::CommonLinkage);
+
+                    //GArray->setAlignment(4);
+                    //AstInitializer *initializer = init_decl->getInitializer();
+//                    std::vector<Value *> valueArray;
+//                    for(AstInitializer *init: initializer->getInitList()->getInitializerList()) {
+//                        if(init->isExpression()) {
+//                            // TODO only constant type now
+//                            valueArray.push_back(init->getExpression()->codegen(context));
+//                        }
+//                        else {
+//                            valueArray.push_back(init->getInitList()->codegen(context)); //TODO
+//                        }
+//                    }
+//                    Constant* res = ConstantDataArray::get(context.llvmContext, valueArray);
+                    std::vector<Constant *> vec_init;
+                    //std::vector<Constant *> vec_init(totalSize,
+                    //                                 ConstantInt::get(Type::getInt32Ty(context.llvmContext), 1, true));
+                    AstInitializer *initializer = init_decl->getInitializer();
+//
+                    for(AstInitializer *init: initializer->getInitList()->getInitializerList()) {
+                        if(init->isExpression()) {
+                            Value *tmp_init = init->getExpression()->codegen(context);
+                            if(tmp_init->getType()->isPointerTy())
+                                tmp_init = context.builder.CreateLoad(tmp_init);
+                            vec_init.push_back(dyn_cast<ConstantInt>(tmp_init));
+                        }
+                        else {
+                          //  vec_init.push_back(init->getInitList()->codegen(context)); //TODO
+                        }
+                    }
+
+                    Constant *ct = ConstantArray::get(ArrayType::get(element_type, totalSize), vec_init);
+                    GArray->setInitializer(ct);
+
+//                    inst = context.builder.CreateAlloca(tp);
+//                    inst = context.builder.CreateStore(GArray, inst);
+//                    // Store inst to our SymbolTable
+                    context.setSymbolType(varName, tp);
+                    context.setSymbolValue(varName, GArray);
+                    context.setValueType(GArray, tp);
+
+                    continue;
+                }
+
+
             }
             else {  // not vector -- example: a;
                 tp = context.typeSystem.getType(varType);
@@ -58,16 +112,28 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
             // have initialization in declaration
             // example: int a=1; | int a[5] = {1,2,3,4,5};
 
-            if(hasInitializer){
+            if(hasInitializer && !isArrayTy){
                 // initializer : expression | '{' initializer_list '}'  | '{' initializer_list ',' '}'
                 AstInitializer *initializer = init_decl->getInitializer();
                 // codegen(expression)
                 Value *exp;
                 if (initializer->getExpression()) {
                     exp = initializer->getExpression()->codegen(context);
-                } else if (initializer->getInitList()) {
-                    exp = initializer->getInitList()->codegen(context);
-                } else {
+                }
+                else if (initializer->getInitList()) {
+//                    std::vector<Value *> valueArray;
+//                    for(AstInitializer *init: initializer->getInitList()->getInitializerList()) {
+//                        if(init->isExpression()) {
+//                            // TODO only constant type now
+//                            valueArray.push_back(init->getExpression()->codegen(context));
+//                        }
+//                        else {
+//                            valueArray.push_back(init->getInitList()->codegen(context)); //TODO
+//                        }
+//                    }
+//                    exp = initializer->getInitList()->codegen(context);
+                }
+                else {
                     std::cout << "Error in initializer: no child!" << std::endl;
                 }
 
