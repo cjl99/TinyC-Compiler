@@ -13,6 +13,11 @@ using std::string;
 using std::vector;
 using std::unique_ptr;
 
+extern void LogError(const char *str);
+extern Value* LogErrorV(const char* str);
+extern Value* LogErrorV(string str);
+extern Value* LogWarningV(string str);
+
 class TypeSystem;
 //class mtructType;
 //
@@ -32,6 +37,9 @@ class TypeSystem;
 class TypeSystem {
 private:
     LLVMContext& llvmContext;
+    std::map<Type*, std::map<Type*, CastInst::CastOps>> _castTable;
+
+    void addCast(Type *from, Type *to, CastInst::CastOps op);
 
 public:
     TypeSystem(LLVMContext& llvmContext);
@@ -63,6 +71,10 @@ public:
 
     Type* getType(std::string specifiers, int ptrLevel=0, int arraySize=0);
     static std::string getTypeStr(Type *type);
+
+    bool checkType(Type *LType, Type *RType);
+    Value* castType(Value *fromValue, Type *toType, BasicBlock *block);
+
 };
 
 #endif //TINYC_COMPILER_TYPESYSTEM_H

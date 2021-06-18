@@ -1,7 +1,6 @@
 #include "CodeGen.h"
 #include "../../ast/AstDecl.h"
 
-// TODO
 // declaration: type_specifier {init_declarator}*n ';'
 // init_declarator: declarator  | declarator '=' initializer | direct_declarator
 // direct_declarator: IDENTIFIER | IDENTIFIER[CONSTANT] | IDENTIFIER[] | IDENTIFIER(identifier_list)
@@ -45,9 +44,8 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
                 context.theModule->getOrInsertGlobal("array"+varName, ArrayType::get(element_type, totalSize) );
                 GlobalVariable* GArray = context.theModule->getNamedGlobal("array"+varName);
                 // GArray->setLinkage(GlobalValue::LinkageTypes::ExternalLinkage);
-                //GArray->setAlignment(4);
+                // GArray->setAlignment(4);
 
-                // std::vector<Constant *> vec_init;
                 std::vector<Constant *> vec_init(totalSize, ConstantInt::get(Type::getInt32Ty(context.llvmContext), 0, true));
 
                 if(hasInitializer) {
@@ -67,18 +65,12 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
                 }
                 Constant *ct = ConstantArray::get(ArrayType::get(element_type, totalSize), vec_init);
                 GArray->setInitializer(ct);
-
-//                    inst = context.builder.CreateAlloca(tp);
-//                    inst = context.builder.CreateStore(GArray, inst);
-//                   // Store inst to our SymbolTable
+                inst = GArray;
+                // Store inst to our SymbolTable
                 context.setSymbolType(varName, tp);
-                context.setSymbolValue(varName, GArray);
-                context.setValueType(GArray, tp);
-
+                context.setSymbolValue(varName, inst);
+                context.setValueType(inst, tp);
                 continue;
-
-
-
             }
             else {  // not vector -- example: a;
                 tp = context.typeSystem.getType(varType);
@@ -102,27 +94,10 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
                 if (initializer->getExpression()) {
                     exp = initializer->getExpression()->codegen(context);
                 }
-                else if (initializer->getInitList()) {
-//                    std::vector<Value *> valueArray;
-//                    for(AstInitializer *init: initializer->getInitList()->getInitializerList()) {
-//                        if(init->isExpression()) {
-//                            // TODO only constant type now
-//                            valueArray.push_back(init->getExpression()->codegen(context));
-//                        }
-//                        else {
-//                            valueArray.push_back(init->getInitList()->codegen(context)); //TODO
-//                        }
-//                    }
-//                    exp = initializer->getInitList()->codegen(context);
-                }
                 else {
-                    std::cout << "Error in initializer: no child!" << std::endl;
+                    LogErrorV("Error in initializer: no child!");
                 }
 
-                // TODO 类型检查
-                // create store
-                // cast to correct type
-                // context.typeSystem.cast(exp, context.typeSystem.getVarType(dstTypeStr), context.currentBlock());
                 // RValue is variable or not
                 if(exp->getType()->isPointerTy()){
                     Value *tmpv = context.builder.CreateLoad(exp);
@@ -134,6 +109,10 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
                     else exp=tmpv;
                 }
 
+                // cast to correct type
+                if(!context.typeSystem.checkType(inst->getType(),exp->getType()))
+                    exp = context.typeSystem.castType(exp, inst->getType()->getPointerElementType(), context.currentBlock()->block);
+                // create store
                 context.builder.CreateStore(exp, inst);
             }
         }

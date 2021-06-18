@@ -98,5 +98,40 @@ Type* TypeSystem::getType(string specifiers, int ptrLevel, int arraySize){
 
 TypeSystem::TypeSystem(LLVMContext& llvmContext)
             :llvmContext(llvmContext){
+    addCast(intTy, floatTy, llvm::CastInst::SIToFP);
+    addCast(intTy, doubleTy, llvm::CastInst::SIToFP);
+    addCast(floatTy, doubleTy, llvm::CastInst::FPExt);
+    addCast(floatTy, intTy, llvm::CastInst::FPToSI);
+    addCast(doubleTy, intTy, llvm::CastInst::FPToSI);
+    addCast(intTy, intTy, llvm::CastInst::SExt);
+}
 
+bool TypeSystem::checkType(Type *LType, Type *RType){
+    return RType->getPointerTo() == LType;
+}
+
+
+void TypeSystem::addCast(Type *from, Type *to, CastInst::CastOps op) {
+    if( _castTable.find(from) == _castTable.end() ){
+        _castTable[from] = std::map<Type*, CastInst::CastOps>();
+    }
+    _castTable[from][to] = op;
+}
+
+Value* TypeSystem::castType(Value *value, Type *type, BasicBlock *block) {
+    Type* from = value->getType();
+    if( from == type )
+        return value;
+    if( _castTable.find(from) == _castTable.end() ){
+        LogWarningV("Type has no cast");
+        return value;
+    }
+    if( _castTable[from].find(type) == _castTable[from].end() ){
+        string error = "Unable to cast from ";
+        error += getTypeStr(from) + " to " + getTypeStr(type);
+        LogWarningV(error);
+        return value;
+    }
+
+    return CastInst::Create(_castTable[from][type], value, type, "cast", block);
 }

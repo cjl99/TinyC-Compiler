@@ -82,5 +82,6 @@ public:
 void LogError(const char *str);
 Value* LogErrorV(const char* str);
 Value* LogErrorV(string str);
-
+Value* LogWarningV(string str);
+void LogWarning(const char*  str);
 

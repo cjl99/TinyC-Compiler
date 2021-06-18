@@ -133,5 +133,12 @@ Value *LogErrorV(const char *str) {
     LogError(str);
     return nullptr;
 }
+Value* LogWarningV(string str){
+    LogWarning(str.c_str());
+    return nullptr;
+}
+void LogWarning(const char *str){
+    fprintf(stdout, "LogWarning: %s\n", str);
+}
 
 

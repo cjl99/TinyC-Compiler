@@ -31,6 +31,10 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
             }
 
             if(!L->getType()->isPointerTy()) return LogErrorV("Generate assign expr error: lhs is noy pointer type");
+
+            // cast to correct type
+            if(!context.typeSystem.checkType(L->getType(),R->getType()))
+                R = context.typeSystem.castType(R, L->getType()->getPointerElementType(), context.currentBlock()->block);
             context.builder.CreateStore(R, L);
         }
         else {
@@ -41,6 +45,10 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
             // is float operation or not
             Type *LType = L->getType();
             Type *RType = R->getType();
+
+            // cast to correct type
+            if(!context.typeSystem.checkType(Ltmp->getType(),RType))
+                R = context.typeSystem.castType(R, LType, context.currentBlock()->block);
 
             bool Lf = LType->isDoubleTy();
             bool Rf = RType->isDoubleTy();
@@ -504,6 +512,11 @@ llvm::Value * AstPrimaryExpr::codegen(CodeGen &context) {
 //    {D}+"."{E}?{FS}?			{ yylval.str = strdup(yytext); RETURN_TOKEN(CONSTANT); }
         std::string number = this->getLabel();
         try {
+            for(auto c: number) {
+                if(c=='.') {
+                    return ConstantFP::get(Type::getDoubleTy(context.llvmContext), stod(number));
+                }
+            }
             uint64_t num;
             if(number[0]=='\''){
                 num = number[1];
