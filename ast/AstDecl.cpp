@@ -59,6 +59,8 @@ AstDeclarator * AstInitDeclarator::getDeclarator() {
     return this->astDeclarator;
 }
 
+
+
 // AstInitList;
 AstInitList::AstInitList() : AstDecl("initializer_list"){}
 std::vector<AstInitializer *> & AstInitList::getInitializerList() {
