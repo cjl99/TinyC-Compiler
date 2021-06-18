@@ -7,7 +7,7 @@
 // direct_declarator: IDENTIFIER | IDENTIFIER[CONSTANT] | IDENTIFIER[] | IDENTIFIER(identifier_list)
 llvm::Value* AstDeclaration::codegen(CodeGen &context) {
 
-    std::cout << "Generate declaration" << std::endl;
+    std::cout << "[LLVM] Generate declaration" << std::endl;
 
     AstInitDeclList *init_decl_list = this->getInitDeclList();
     if(init_decl_list) {
@@ -68,7 +68,7 @@ llvm::Value* AstDeclaration::codegen(CodeGen &context) {
                 } else if (initializer->getInitList()) {
                     exp = initializer->getInitList()->codegen(context);
                 } else {
-                    std::cout << "Error in initializer: no child!" << std::endl;
+                    LogErrorV("Error in initializer: no child!");
                 }
 
                 // TODO 类型检查

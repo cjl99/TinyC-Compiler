@@ -14,6 +14,7 @@
 #include <llvm/Support/FormattedStream.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/IR/LegacyPassManager.h>
+#include <glog/logging.h>
 
 #include "../codeGen/CodeGen.h"
 #include "ObjGen.h"
@@ -21,6 +22,8 @@
 using namespace llvm;
 
 void ObjGen(CodeGen & context, const string& filename){
+
+    outs() << "[LLVM] Generate object file" << filename.c_str() << "\n";
     // Initialize the target registry etc.
     InitializeAllTargetInfos();
     InitializeAllTargets();
@@ -70,7 +73,7 @@ void ObjGen(CodeGen & context, const string& filename){
     pass.run(*context.theModule.get());
     dest.flush();
 
-    outs() << "Object code wrote to " << filename.c_str() << "\n";
+    outs() << "[LLVM] Object code wrote to " << filename.c_str() << "\n";
 
     return;
 }

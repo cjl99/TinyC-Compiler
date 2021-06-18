@@ -1,4 +1,4 @@
-FLAG = `llvm-config --cxxflags --ldflags --libs --system-libs`
+FLAG = `llvm-config --cxxflags --ldflags --libs --system-libs` -lglog
 LLVM_LINK_FLAGS = `llvm-config --ldflags --libs --system-libs`
 LLVM_COMPILE_FLAGS = `llvm-config --cxxflags`
 FLAG_C_VERSION = -std=c++11
@@ -60,8 +60,8 @@ $(OBJS_TYPESYS) : $(SOURCE_TYPESYS)
 $(OBJS_OBJGEN) : $(SOURCE_OBJGEN)
 	make -C ./backend/ObjGen
 
-test: ./test/quicksort.c
-	./res test/quicksort.c
+test: ./test/a.c
+	./res test/a.c
 	g++ output.o -o test1
 	./test1
 

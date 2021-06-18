@@ -9,16 +9,8 @@ using namespace std;
 #define DEBUG_PARSER
 
 extern int yylex();
-void yyerror(const char *str);
+extern void yyerror(const char *str);
 extern FILE* yyin;
-
-void printExpr(string start){
-	std::cout<<start;
-	// for(int i = 0;i<strs.length();i++){
-	// 	std::cout<<" "<<strs[i];
-	// }
-	std::cout<<endl;
-}
 char *key;
 
 %}
@@ -129,10 +121,10 @@ char *key;
 %%
 program
 	: external_declaration{
+	    printf("[Parser] Generating AST...\n");
 	    $$ = new AstProgram();
 	    $$->addExternalExpr($1);
 	    astRoot = $$;
-	    printf("Program is parsed successfully!\n");
 	}
 	| program external_declaration {
 	    $$ = $1;
@@ -443,7 +435,6 @@ conditional_expression
 
 expression
 	: conditional_expression {
-	    printf("conditional_expression\n");
 	    $$ = new AstExpression($1);
 	}
 	| unary_expression assignment_operator expression {
@@ -612,6 +603,7 @@ jump_statement
 
 %%
 #include <stdio.h>
+
 #define DEBUG_PARSER
 
 extern char yytext[];
@@ -619,11 +611,13 @@ extern int column;
 
 #ifdef DEBUG_PARSER
 int main(int argc,char* argv[]){
+
 	// open file to parse
 	yyin=fopen(argv[1],"r");
-	printf("parse\n");
+	printf("[Parser] Parsing...\n");
 	yyparse();
 	fclose(yyin);
+ printf("[Parser] Parsed success!\n");
 
 	// visualize ast and save it to file
 	VisualizeAst *graph = new VisualizeAst("AstGraph.dot");

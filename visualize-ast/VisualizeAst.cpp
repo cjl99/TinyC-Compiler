@@ -1,4 +1,4 @@
-#define DEBUG_VISUALIZE
+//#define DEBUG_VISUALIZE
 #include "VisualizeAst.h"
 
 VisualizeAst::VisualizeAst(std::string filename) {
@@ -7,13 +7,13 @@ VisualizeAst::VisualizeAst(std::string filename) {
 }
 
 void VisualizeAst::generateGraph() {
-    std::cout << "Generate AstGraph..." << std::endl;
+    std::cout << "[Visualizer] Generate AstGraph..." << std::endl;
     visualAstRoot((AstProgram *)astRoot);
-    std::cout << "Generate AstGraph success!" << std::endl;
+    std::cout << "[Visualizer] Generate AstGraph success!" << std::endl;
 }
 
 void VisualizeAst::saveGraph() {
-    std::cout << "Save AstGraph to file:" + outFileName + "..."<< std::endl;
+    std::cout << "[Visualizer] Save AstGraph to file:" + outFileName + "..."<< std::endl;
 
     std::ofstream f(outFileName);
     f << "digraph G {" << std::endl;
@@ -23,7 +23,7 @@ void VisualizeAst::saveGraph() {
     f << "}";
     f.close();
 
-    std::cout << "Save AstGraph success!" << std::endl;
+    std::cout << "[Visualizer] Save AstGraph success!" << std::endl;
 }
 
 int VisualizeAst::addNodes(std::string label) {
@@ -83,7 +83,7 @@ int VisualizeAst::visualAstDeclaration(AstDeclaration* astDeclaration) {
     AstSpec* astSpec = astDeclaration->getTypeSpec();
     AstInitDeclList* astInitDeclList = astDeclaration->getInitDeclList();
     if(astSpec== nullptr || astInitDeclList== nullptr) {
-        std::cout << "visualAstDeclaration error" << std::endl;
+        std::cerr << "visualAstDeclaration error" << std::endl;
     }
     int cid1 = visualAstSpec(astSpec);
     addEdges(pid, cid1);
@@ -274,12 +274,12 @@ int VisualizeAst::visualAstExpression(AstExpression* astExpression) {
     int pid = addNodes(nodetype + " " + condi);
     
     if(astExpression->getCondiExpr()) {
-        std::cout << astExpression->getCondiExpr() << std::endl;
+        // std::cout << astExpression->getCondiExpr() << std::endl;
         int cid1 = visualAstCondiExpr(astExpression->getCondiExpr());
         addEdges(pid, cid1);
     }
     else {
-        std::cout << " here " << std::endl;
+        // std::cout << " here " << std::endl;
 
         int cid1 = visualAstUnaryExpr(astExpression->getUnaryExpr());
         addEdges(pid, cid1);
@@ -300,7 +300,7 @@ int VisualizeAst::visualAstCondiExpr(AstCondiExpr *condi_expr) {
 
     if(condi_expr->getAstExpression()==nullptr) {
         AstBinaryExpr* back = condi_expr->getAstBinaryExpr_back();
-        std::cout << condi_expr << std::endl;
+        // std::cout << condi_expr << std::endl;
         int cid1 = visualAstBinaryExpr(back);
         addEdges(pid, cid1);
     }

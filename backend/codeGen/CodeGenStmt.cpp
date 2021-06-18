@@ -2,7 +2,7 @@
 #include "../../ast/AstStmt.h"
 
 llvm::Value* AstCompoundStmt::codegen(CodeGen &context) {
-    std::cout << "Generate compound statement" << std::endl;
+    std::cout << "[LLVM] Generate compound statement" << std::endl;
     // declaration list part
     AstDeclarationList *decl_list = this->getAstDeclarationList();
     Value *lastV = nullptr;
@@ -26,9 +26,10 @@ llvm::Value* AstCompoundStmt::codegen(CodeGen &context) {
 }
 
 llvm::Value * AstStmt::codegen(CodeGen &context) {
-    std::cout << "Generate Statement" << std::endl;
     AstNonLabelStmt *nonLabelStmt = this->getStmt();
     int stmt_type = this->getType();
+
+    std::cout << "[LLVM] Generate Statement";
     std::cout << "StmtType: " + to_string(stmt_type) << std::endl;
     switch (stmt_type) {
         case 1:
@@ -51,7 +52,7 @@ llvm::Value * AstStmt::codegen(CodeGen &context) {
 }
 
 llvm::Value* AstSelectStmt::codegen(CodeGen &context){
-    cout << "Generating select statement" << endl;
+    cout << "[LLVM] Generate select statement" << endl;
     Value* condValue = this->getExpr()->codegen(context);
     // cast to boolean
     condValue = context.CastToBoolean(context, condValue);
@@ -121,7 +122,7 @@ llvm::Value* AstSelectStmt::codegen(CodeGen &context){
 
 
 llvm::Value* AstIterStmt::codegen(CodeGen &context){
-    cout << "Generating iteration statement" << endl;
+    cout << "[LLVM] Generate iteration statement" << endl;
 
     Function* theFunction = context.builder.GetInsertBlock()->getParent();
 
@@ -182,7 +183,7 @@ llvm::Value* AstExprStmt::codegen(CodeGen &context){
 llvm::Value* AstJmpStmt::codegen(CodeGen &context){
     string type = this->getType();
     if(type=="continue"){
-        std::cout<<"generate continue"<<std::endl;
+        std::cout<<"[LLVM] Generate continue"<<std::endl;
         if (context.currentBlock()->loopContinue == nullptr) {
             LogError("Cannot use continue statement out of loops");
             return nullptr;
@@ -191,7 +192,7 @@ llvm::Value* AstJmpStmt::codegen(CodeGen &context){
         return nullptr;
     }
     else if(type=="break"){
-        std::cout<<"generate break"<<std::endl;
+        std::cout<<"[LLVM] Generate break"<<std::endl;
         if (context.currentBlock()->loopBreak == nullptr) {
             LogError("Cannot use break statement out of loops");
             return nullptr;
@@ -201,7 +202,7 @@ llvm::Value* AstJmpStmt::codegen(CodeGen &context){
         return nullptr;
     }
     else if(type=="return"){
-        cout << "Generating return statement" << endl;
+        cout << "[LLVM] Generate return statement" << endl;
         Value* returnValue;
         if(this->getExpr()) {
             returnValue = this->getExpr()->codegen(context);

@@ -1,6 +1,6 @@
 %option yylineno 
 %{
-#include <stdio.h>
+#include <iostream>
 #include "ast/Ast.h"
 #include "y.tab.hpp"
 
@@ -139,22 +139,6 @@ int yywrap(void)        /* called at end of input */
 }
 
 void yyerror(const char *s) {
-    fprintf(stderr, "Lex Error: %s\n", s);
-    fprintf(stderr, "line %d: %s\n", yylineno, s);
-}
-
-int column = 0;
-void count()
-{
-	int i;
-
-	for (i = 0; yytext[i] != '\0'; i++)
-		if (yytext[i] == '\n')
-			column = 0;
-		else if (yytext[i] == '\t')
-			column += 8 - (column % 8);
-		else
-			column++;
-
-	ECHO;
+     fprintf(stderr, "Lex: line %d %s\n", yylineno, s);
+     std::exit(EXIT_FAILURE);
 }

@@ -38,7 +38,6 @@ Value *AstExternalExpr::codegen(CodeGen &context) {
 llvm::Value* AstFunDef::codegen(CodeGen &context) {
 
     Type* retType = context.typeSystem.getType(this->getReturnType(), this->getReturnPtrLevel());
-    std::cout << "RETURN TYPE::::" << context.typeSystem.getTypeStr(retType) << std::endl;
     std::string funcName = this->getFuncName();
 
     std::vector<Type*> argTypes;
@@ -67,7 +66,7 @@ llvm::Value* AstFunDef::codegen(CodeGen &context) {
 
         for (auto &irArgIter: function->args()) {
             irArgIter.setName((*param).second->getDirectDeclarator()->getIdentifier());
-            std::cout << "Args Type: " << context.typeSystem.getTypeStr(irArgIter.getType()) << std::endl;
+            // std::cout << "Args Type: " << context.typeSystem.getTypeStr(irArgIter.getType()) << std::endl;
             Value *argAlloc;
             int ptrLevel = 0;
             if ((*param).second->hasPointer())

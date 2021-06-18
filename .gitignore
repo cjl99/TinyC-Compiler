@@ -1,3 +1,5 @@
 .idea
 *.o
 res
+*.ll
+*.dot

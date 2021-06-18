@@ -10,13 +10,13 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
     else {
         // Operator: ">>=" "<<=" "+=" "-=" "*=" "/=" "%=" "&=" "^=" "|=" "="
         std::string op = this->getAssignOp()->getOperator();
-        std::cout << "Generate assignment expression...\n op is: " << op << std::endl;
+        std::cout << "[LLVM] Generate assignment expression: op = " << op << std::endl;
 
         Value *L = this->getUnaryExpr()->codegen(context);
-        std::cout << "lhs type: " << context.typeSystem.getTypeStr(L->getType()) << std::endl;
+        // std::cout << "lhs type: " << context.typeSystem.getTypeStr(L->getType()) << std::endl;
 
         Value *R = this->getExpression()->codegen(context);
-        std::cout << "rhs type: " << context.typeSystem.getTypeStr(R->getType()) << std::endl;
+        // std::cout << "rhs type: " << context.typeSystem.getTypeStr(R->getType()) << std::endl;
 
         if(op=="=") {
             // RValue is variable or not
@@ -91,7 +91,7 @@ llvm::Value* AstCondiExpr::codegen(CodeGen &context) {
         return this->binaryExpr_back->codegen(context);
     }
     else {
-        std::cout << "Generate conditional expression" << std::endl;
+        std::cout << "[LLVM] Generate conditional expression" << std::endl;
 
         // TODO b_front ? expr : b_back
         AstBinaryExpr *b_front = this->getAstBinaryExpr_front();
@@ -158,13 +158,13 @@ llvm::Value *AstBinaryExpr::codegen(CodeGen &context) {
         return this->astCastExpr->codegen(context);
     }
     // binary operation
-    std::cout << "Generate binary expression" << std::endl;
+    std::cout << "[LLVM] Generate binary expression" << std::endl;
 
     Value *L = this->front_expr->codegen(context);
     Value *R = this->back_expr->codegen(context);
 
-    std::cout << context.typeSystem.getTypeStr(L->getType()) << std::endl;
-    std::cout << context.typeSystem.getTypeStr(R->getType()) << std::endl;
+//    std::cout << context.typeSystem.getTypeStr(L->getType()) << std::endl;
+//    std::cout << context.typeSystem.getTypeStr(R->getType()) << std::endl;
 
     if(context.isIdentifier(L))
         L = context.builder.CreateLoad(L);
@@ -175,8 +175,8 @@ llvm::Value *AstBinaryExpr::codegen(CodeGen &context) {
     Type *RType = R->getType();
     if(RType->isArrayTy()) R = context.builder.CreateBitCast(R, LType, "castR");
 
-    std::cout << context.typeSystem.getTypeStr(LType) << std::endl;
-    std::cout << context.typeSystem.getTypeStr(RType) << std::endl;
+//    std::cout << context.typeSystem.getTypeStr(LType) << std::endl;
+//    std::cout << context.typeSystem.getTypeStr(RType) << std::endl;
 
     bool isFloat = false;
     if( (LType->getTypeID() == Type::DoubleTyID) || (RType->getTypeID() == Type::DoubleTyID) ){  // type upgrade
@@ -241,8 +241,8 @@ llvm::Value *AstBinaryExpr::codegen(CodeGen &context) {
         res =  LogErrorV("Unknown binary operator");
     }
 
-    std::cout << "Binary codegen success" << std::endl;
-    std::cout << "Binary return type:" << context.typeSystem.getTypeStr(res->getType()) << std::endl;
+//    std::cout << "Binary codegen success" << std::endl;
+//    std::cout << "Binary return type:" << context.typeSystem.getTypeStr(res->getType()) << std::endl;
     return res;
 }
 
@@ -254,7 +254,7 @@ llvm::Value* AstCastExpr::codegen(CodeGen &context) {
     if(this->isUnaryExpr()) {
         return this->astUnaryExpr->codegen(context);
     } else {  // cast
-        std::cout << "Generate cast expression" << std::endl;
+        std::cout << "[LLVM] Generate cast expression" << std::endl;
 
         AstCastExpr *cast_expr = this->getCastExpr();
         std::string type = this->getAstTypeName()->getType();
@@ -280,7 +280,7 @@ llvm::Value* AstUnaryExpr::codegen(CodeGen &context) {
         return post_expr->codegen(context);
     }
     else {
-        std::cout << "Generate unary expression" << std::endl;
+        std::cout << "[LLVM] Generate unary expression" << std::endl;
 
         if(this->op=="++") { // tmpv += 1; return tmpv; ++a
             AstUnaryExpr *unary_expr = (AstUnaryExpr *)this->getPtr();
@@ -368,7 +368,7 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
         return ((AstPrimaryExpr *)this->getPtr())->codegen(context);
     }
 
-    std::cout << "Generate postfix expression" << std::endl;
+    std::cout << "[LLVM] Generate postfix expression" << std::endl;
 
     // [] for vector indexing
     if(this->op=="[]") { // a[] pointer dereference
@@ -388,9 +388,9 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
         }
         else value = tmparray;
 
-        std::cout << context.typeSystem.getTypeStr(value->getType()) << std::endl;
+//        std::cout << context.typeSystem.getTypeStr(value->getType()) << std::endl;
 
-        cout << "Generate array: " << name << endl;
+        cout << "[LLVM] Generate array: " << name << endl;
         std::vector<Value *> indexes;   // ArrayRef(std::vector)
         indexes.push_back(index);
 
@@ -402,7 +402,7 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
     else if(this->op=="()") {
         AstPrimaryExpr *primary_expr = (AstPrimaryExpr *)this->getAstPostfixExpr()->getPtr();
         std::string funcName = primary_expr->getLabel();
-        cout << "Generating function call of " << funcName << endl;
+        cout << "[LLVM] Generate function call of " << funcName << endl;
         Function * calleeF = context.theModule->getFunction(funcName);
 
         AstArgExprList* arg_list = (AstArgExprList *)this->getPtr();
@@ -421,7 +421,7 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
         std::vector<Value*> argsv;
         for(auto it=arg_vec.begin(); it!=arg_vec.end(); it++){
             Value *tmp = (*it)->codegen(context);
-            std::cout << context.typeSystem.getTypeStr(tmp->getType()) << std::endl;
+//            std::cout << context.typeSystem.getTypeStr(tmp->getType()) << std::endl;
             if(tmp->getType()->getTypeID()==Type::PointerTyID ) {
                 Value *tmpv = context.builder.CreateLoad(tmp);
                 // RValue is array or not
@@ -484,11 +484,11 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
 // primary_expression
 //: IDENTIFIER | CONSTANT | STRING_LITERAL | '(' expression ')'
 llvm::Value * AstPrimaryExpr::codegen(CodeGen &context) {
-    std::cout << "Generate primary expression: " << this->getLabel() << std::endl;
+    std::cout << "[LLVM] Generate primary expression: " << this->getLabel() << std::endl;
     int primary_type = this->getType();
 
     if(primary_type==1) { // IDENTIFIER -- name char *
-        cout << "Generating identifier " << this->getLabel() << endl;
+        cout << "[LLVM] Generate identifier " << this->getLabel() << endl;
         Value* value = context.getSymbolValue(this->getLabel());
         if( !value ) return LogErrorV("Unknown variable name " + this->getLabel());
 
@@ -529,11 +529,11 @@ llvm::Value * AstPrimaryExpr::codegen(CodeGen &context) {
 
     }
     else if(primary_type==3) { // STRING_LITERAL ""
-        std::cout << "Generate STRING_LITERAL: " << this->getLabel() << std::endl;
+        std::cout << "[LLVM] Generate STRING_LITERAL: " << this->getLabel() << std::endl;
         Type *tp = context.typeSystem.getType("char", 1); // tp is char * now
         Value *tmp = context.builder.CreateAlloca(tp);
         Value *str = context.builder.CreateGlobalString(this->getLabel(), "string");
-        std::cout << context.typeSystem.getTypeStr(str->getType()) << std::endl;
+//        std::cout << context.typeSystem.getTypeStr(str->getType()) << std::endl;
         context.builder.CreateStore(str, tmp);
         return tmp;
     }

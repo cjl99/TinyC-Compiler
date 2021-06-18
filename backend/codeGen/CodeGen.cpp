@@ -93,7 +93,7 @@ void CodeGen::setCurrentReturnValue(Value *retValue) {
 }
 
 void CodeGen::generateCode(AstProgram* root) {
-    cout << "Generating IR code" << endl;
+    cout << "[LLVM] Generating IR code..." << endl;
 
     std::vector<Type*> sysArgs;
     FunctionType* mainFuncType = FunctionType::get(Type::getVoidTy(this->llvmContext), makeArrayRef(sysArgs), false);
@@ -104,16 +104,24 @@ void CodeGen::generateCode(AstProgram* root) {
     Value* retValue = root->codegen(*this);
     popBlock();
 
-    cout << "Code generate success\n" << endl;
+    cout << "[LLVM] Code generate success!\n" << endl;
+
+    raw_ostream *out = &outs();
+    std::error_code EC;
+    out = new raw_fd_ostream("ir.ll", EC);
 
     llvm::legacy::PassManager passManager;
-    passManager.add(createPrintModulePass(outs()));
+    passManager.add(createPrintModulePass(*out));
     passManager.run(*(this->theModule.get()));
+
+    if (out != &outs())
+        delete out;
     return;
 }
 
 void LogError(const char *str) {
     fprintf(stderr, "LogError: %s\n", str);
+    std::exit(EXIT_FAILURE);
 }
 
 Value *LogErrorV(string str){
