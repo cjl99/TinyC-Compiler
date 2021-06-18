@@ -36,7 +36,9 @@ Value *AstExternalExpr::codegen(CodeGen &context) {
 //5. create returnValue
 //6. return function
 llvm::Value* AstFunDef::codegen(CodeGen &context) {
+
     Type* retType = context.typeSystem.getType(this->getReturnType(), this->getReturnPtrLevel());
+    std::cout << "RETURN TYPE::::" << context.typeSystem.getTypeStr(retType) << std::endl;
     std::string funcName = this->getFuncName();
 
     std::vector<Type*> argTypes;
@@ -58,7 +60,7 @@ llvm::Value* AstFunDef::codegen(CodeGen &context) {
         BasicBlock *basicBlock = BasicBlock::Create(context.llvmContext, funcName, function, nullptr);
 
         context.builder.SetInsertPoint(basicBlock);
-        context.pushBlock(basicBlock);
+        context.pushBlock(basicBlock, true);
 
         // declare function params
         auto param = paramList.begin();

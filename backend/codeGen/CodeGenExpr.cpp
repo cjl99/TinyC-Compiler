@@ -338,8 +338,14 @@ llvm::Value* AstUnaryExpr::codegen(CodeGen &context) {
             else if(op=="*"){ // *p = 1;
                 // tmpv is the pointer's address
                 // get the base type address
+                Value *R = tmpv;
                 tmpv = context.builder.CreateLoad(tmpv);
-                return tmpv;
+                if(tmpv->getType()->isArrayTy()){
+                    Type *ptr  = PointerType::get(tmpv->getType()->getArrayElementType(), 0);
+                    R = context.builder.CreateBitCast(R, ptr, "castArray2Ptr");
+                }
+                else R=tmpv;
+                return R;
             }
         }
     }
@@ -417,9 +423,14 @@ llvm::Value* AstPostfixExpr::codegen(CodeGen &context) {
             Value *tmp = (*it)->codegen(context);
             std::cout << context.typeSystem.getTypeStr(tmp->getType()) << std::endl;
             if(tmp->getType()->getTypeID()==Type::PointerTyID ) {
-                tmp = context.builder.CreateLoad(tmp);
-                // if(tmp->getType()->isArrayTy())
-                //     tmp = context.builder.CreateBitCast(tmp, tmp->getType()->getArrayElementType(), "ary_cast");
+                Value *tmpv = context.builder.CreateLoad(tmp);
+                // RValue is array or not
+                if(tmpv->getType()->isArrayTy()){
+                    Type *ptr  = PointerType::get(tmpv->getType()->getArrayElementType(), 0);
+                    tmp = context.builder.CreateBitCast(tmp, ptr, "castArray2Ptr");
+                }
+                else tmp=tmpv;
+
             }
             argsv.push_back(tmp);
             if( !argsv.back() ){        // if any argument codegen fail

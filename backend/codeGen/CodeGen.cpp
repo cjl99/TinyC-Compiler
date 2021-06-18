@@ -68,8 +68,8 @@ void CodeGen::setValueType(llvm::Value *value, llvm::Type *type) {
 CodeBlock* CodeGen::currentBlock() const{
     return this->code_stack.back();
 }
-void CodeGen::pushBlock(llvm::BasicBlock *block){
-    CodeBlock *codeBlock = new CodeBlock(block);
+void CodeGen::pushBlock(llvm::BasicBlock *block, bool isFuncBlock){
+    CodeBlock *codeBlock = new CodeBlock(block, isFuncBlock);
     codeBlock->returnValue = nullptr;
     this->code_stack.push_back(codeBlock);
 }
@@ -84,7 +84,12 @@ Value* CodeGen::getCurrentReturnValue(){
 }
 
 void CodeGen::setCurrentReturnValue(Value *retValue) {
-    this->code_stack.back()->returnValue = retValue;
+    for(auto it=code_stack.rbegin();it!=code_stack.rend();it++){
+        if((*it)->isFuncBlock){
+            (*it)->returnValue = retValue;
+            return ;
+        }
+    }
 }
 
 void CodeGen::generateCode(AstProgram* root) {
@@ -95,7 +100,7 @@ void CodeGen::generateCode(AstProgram* root) {
     Function* mainFunc = Function::Create(mainFuncType, GlobalValue::ExternalLinkage, "main");
     BasicBlock* block = BasicBlock::Create(this->llvmContext, "entry");
 
-    pushBlock(block);
+    pushBlock(block, true);
     Value* retValue = root->codegen(*this);
     popBlock();
 

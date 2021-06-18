@@ -19,11 +19,18 @@ int main(){
 //    printf("%s %c\n",str, str[1]);
 //
 //    // test pointer to array
-    int array2[10];
-    int *parr = array2;
-    array2[0] = 31;
-    parr[2] = 222;
-    printf("%d %d", parr[0], array2[2]);
+//    int array2[10];
+//    int *parr = array2;
+//    array2[0] = 31;
+//    parr[2] = 222;
+//    printf("%d %d", parr[0], array2[2]);
 
+    // test dereference array
+//    int array2[10];
+//    int *parr = array2;
+//    array2[0] = 31;
+//    parr[0] = 32;
+//    printf("%d %d ", parr[0], array2[0]);
+//    printf("%d %d", *array2, *parr);
     return 0;
 }

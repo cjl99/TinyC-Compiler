@@ -60,8 +60,8 @@ $(OBJS_TYPESYS) : $(SOURCE_TYPESYS)
 $(OBJS_OBJGEN) : $(SOURCE_OBJGEN)
 	make -C ./backend/ObjGen
 
-test: ./test/pointer.c
-	./res test/pointer.c
+test: ./test/quicksort.c
+	./res test/quicksort.c
 	g++ output.o -o test1
 	./test1
 

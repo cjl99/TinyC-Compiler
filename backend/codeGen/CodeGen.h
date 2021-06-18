@@ -37,9 +37,11 @@ public:
     llvm::BasicBlock *block;
     llvm::BasicBlock *loopBreak = nullptr;
     llvm::BasicBlock *loopContinue = nullptr;
+    bool isFuncBlock = false;
 
-    CodeBlock(llvm::BasicBlock *block){
+    CodeBlock(llvm::BasicBlock *block, bool isFuncBlock){
         this->block = block;
+        this->isFuncBlock = isFuncBlock;
     }
 };
 
@@ -69,7 +71,7 @@ public:
     bool isIdentifier(Value* value);
 
     CodeBlock* currentBlock() const;
-    void pushBlock(llvm::BasicBlock * block);
+    void pushBlock(llvm::BasicBlock * block, bool isFunc = false);
     void popBlock();
 
     void generateCode(AstProgram *root);

@@ -203,8 +203,11 @@ llvm::Value* AstJmpStmt::codegen(CodeGen &context){
     else if(type=="return"){
         cout << "Generating return statement" << endl;
         Value* returnValue;
-        if(this->getExpr())
+        if(this->getExpr()) {
             returnValue = this->getExpr()->codegen(context);
+            if (returnValue->getType()->isPointerTy())
+                returnValue = context.builder.CreateLoad(returnValue);
+        }
         else returnValue = nullptr;
         context.setCurrentReturnValue(returnValue);
         return returnValue;
