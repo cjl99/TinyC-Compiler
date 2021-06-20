@@ -1,7 +1,6 @@
 //
 // Created by Jialiang Chen on 2021/6/8.
 //
-
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/raw_ostream.h>
@@ -14,7 +13,6 @@
 #include <llvm/Support/FormattedStream.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/IR/LegacyPassManager.h>
-#include <glog/logging.h>
 
 #include "../codeGen/CodeGen.h"
 #include "ObjGen.h"

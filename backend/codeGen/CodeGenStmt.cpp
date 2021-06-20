@@ -12,7 +12,6 @@ llvm::Value* AstCompoundStmt::codegen(CodeGen &context) {
             lastV = decl->codegen(context);
         }
     }
-
     // stmt list part
     AstStmtList *stmtlist = this->getAstStmtList();
     if(stmtlist) {
@@ -211,6 +210,8 @@ llvm::Value* AstJmpStmt::codegen(CodeGen &context){
         }
         else returnValue = nullptr;
         context.setCurrentReturnValue(returnValue);
+        context.builder.CreateRet(returnValue);
+
         return returnValue;
     }
 

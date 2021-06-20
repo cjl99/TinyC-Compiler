@@ -16,6 +16,7 @@ int display(int *array, int maxlen)
 int swap(int* a, int* b)
 {
     int t = *a;
+    if(a==b) return 0;
     *a = *b;
     *b = t;
 
@@ -24,7 +25,7 @@ int swap(int* a, int* b)
 
 int QuickSort(int *arr, int low, int high)
 {
-    if (low < high)
+    if (low <= high)
     {
         int pivot = arr[high];
         int pi;
@@ -42,7 +43,6 @@ int QuickSort(int *arr, int low, int high)
         }
         swap(&arr[i + 1], &arr[high]);
         pi = i+1;
-
         // 递归调用
         QuickSort(arr, low, pi - 1);     // 排序k左边
         QuickSort(arr, pi + 1, high);    // 排序k右边
@@ -53,16 +53,15 @@ int QuickSort(int *arr, int low, int high)
 // 主函数
 int main()
 {
-    int arb[3] = {1,2,3};
-    int array[10] = {1,10,390,88,5,7,9,4,13,2};
-
-    int maxlen = 10;
+    int array[15] = {15,2,3,4,5,
+                    6,7,8,9,10,
+                    11,12,13,14,1};
+    int maxlen = 15;
 
     printf("排序前的数组\n");
     display(array, maxlen);
 
     QuickSort(array, 0, maxlen-1);  // 快速排序
-//
     printf("排序后的数组\n");
     display(array, maxlen);
 

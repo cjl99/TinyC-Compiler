@@ -1,9 +1,9 @@
-FLAG = `llvm-config --cxxflags --ldflags --libs --system-libs` -lglog
+FLAG = `llvm-config --cxxflags --ldflags --libs --system-libs`
 LLVM_LINK_FLAGS = `llvm-config --ldflags --libs --system-libs`
 LLVM_COMPILE_FLAGS = `llvm-config --cxxflags`
 FLAG_C_VERSION = -std=c++11
 
-.PHONY: test
+.PHONY: test graph
 SOURCE = $(wildcard ./ast/*.cpp)
 OBJS = $(patsubst %.cpp,%.o,$(SOURCE))
 SOURCE2 = $(wildcard ./visualize-ast/*.cpp)
@@ -60,13 +60,13 @@ $(OBJS_TYPESYS) : $(SOURCE_TYPESYS)
 $(OBJS_OBJGEN) : $(SOURCE_OBJGEN)
 	make -C ./backend/ObjGen
 
-test: ./test/type.c
-	./res test/type.c
+test: test/test_error.c
+	./res test/test_error.c
 	g++ output.o -o test1
 	./test1
 
 graph:
-	./res test/quicksort.c
+	./res test/test_func.c
 	dot AstGraph.dot -T jpg -o graph.jpg
 
 clean:

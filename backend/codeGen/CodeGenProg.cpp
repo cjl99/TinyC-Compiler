@@ -84,11 +84,11 @@ llvm::Value* AstFunDef::codegen(CodeGen &context) {
 
         this->getCompound_statement()->codegen(context);
 
-        if (context.getCurrentReturnValue()) {
-            context.builder.CreateRet(context.getCurrentReturnValue());
-        } else {
-            return LogErrorV("Function block return value not founded");
-        }
+//        if (context.getCurrentReturnValue()) {
+//            context.builder.CreateRet(context.getCurrentReturnValue());
+//        } else {
+//            return LogErrorV("Function block return value not founded");
+//        }
         context.popBlock();
     }
     return function;

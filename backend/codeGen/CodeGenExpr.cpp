@@ -14,7 +14,6 @@ llvm::Value* AstExpression::codegen(CodeGen &context){
 
         Value *L = this->getUnaryExpr()->codegen(context);
         // std::cout << "lhs type: " << context.typeSystem.getTypeStr(L->getType()) << std::endl;
-
         Value *R = this->getExpression()->codegen(context);
         // std::cout << "rhs type: " << context.typeSystem.getTypeStr(R->getType()) << std::endl;
 
